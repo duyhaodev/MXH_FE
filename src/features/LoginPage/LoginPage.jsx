@@ -1,0 +1,112 @@
+import { useState } from "react";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import authApi from "../../api/authApi";
+
+
+
+export function LoginPage({ onLogin }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    const values = { email, password };
+    
+    try {
+      setIsLoading(true);
+      const res = await authApi.login(values);
+      console.log("Login response:", res);
+
+      if (res?.code === 1000 && res?.result?.authenticated) {
+        localStorage.setItem("isAuthenticated", "true");
+        onLogin?.();
+      }
+      else {
+        alert("Sai email hoặc mật khẩu");
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-2">Threads</h1>
+          <p className="text-muted-foreground">Join the conversation</p>
+        </div>
+
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle>Sign in to Threads</CardTitle>
+            <CardDescription>
+              Enter your credentials to access your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form 
+              onSubmit={handleSubmit} 
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  name="email"
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  name="password"
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing in..." : "Sign in"}
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                Don't have an account?{" "}
+                <Button variant="link" className="p-0 h-auto">
+                  Sign up
+                </Button>
+              </p>
+            </div>
+
+            <div className="mt-4 text-center">
+              <Button variant="link" className="p-0 h-auto text-sm">
+                Forgot password?
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
