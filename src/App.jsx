@@ -3,11 +3,13 @@ import { LoginPage } from "./features/LoginPage/LoginPage.jsx";
 import { FeedPage } from "./features/FeedPage/FeedPage.jsx";
 import { ProfilePage } from "./features/ProfilePage/ProfilePage.jsx";
 import { ThreadsLayout } from "./components/ThreadsLayout/ThreadsLayout.jsx";
+import { RegisterPage } from "./features/RegisterPage/RegisterPage.jsx";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentPage, setCurrentPage] = useState("feed");
   const [profileUsername, setProfileUsername] = useState(undefined);
+  const [showRegister, setShowRegister] = useState(false); 
 
   // Set dark mode by default
   useEffect(() => {
@@ -36,8 +38,15 @@ export default function App() {
   };
 
   if (!isLoggedIn) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
+  return showRegister ? (
+    <RegisterPage onBackToLogin={() => setShowRegister(false)} />
+  ) : (
+    <LoginPage
+      onLogin={handleLogin}
+      onRegister={() => setShowRegister(true)}
+    />
+  );
+}
 
   return (
     <ThreadsLayout currentPage={currentPage} onNavigate={handleNavigate}>
