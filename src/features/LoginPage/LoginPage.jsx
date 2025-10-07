@@ -7,7 +7,7 @@ import authApi from "../../api/authApi";
 
 
 
-export function LoginPage({ onLogin }) {
+export function LoginPage({ onLogin, onRegister }) {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -93,7 +93,7 @@ export function LoginPage({ onLogin }) {
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
                 Don't have an account?{" "}
-                <Button variant="link" className="p-0 h-auto">
+                <Button variant="link" className="p-0 h-auto" onClick={() => onRegister?.()}>
                   Sign up
                 </Button>
               </p>
