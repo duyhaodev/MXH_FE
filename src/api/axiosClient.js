@@ -22,17 +22,26 @@ axiosClient.interceptors.request.use(
   });
 
 // Add a response interceptor
-axiosClient.interceptors.response.use(function (response) {
-    // Any status code that lie within the range of 2xx cause this function to trigger
-    // Do something with response data
-    return response.data;
-  }, function (error) {
-    // Any status codes that falls outside the range of 2xx cause this function to trigger
-    // Do something with response error
-    if (error.response?.status === 401)
-      // Ví dụ: redirect về trang login
-      window.location.href = "/login";
-    return Promise.reject(error);
-  });
+axiosClient.interceptors.response.use(
+  (response) => response.data,
+  (error) => {
+    const status = error.response?.status;  //Lấy mã lỗi 400, 401, 403, 500...
+    const url = error.config?.url || "";  // Lấy URL của API bị lỗi (nếu có)
+
+    const isAuthEndpoint =
+      url.includes("/auth/token") ||
+      url.includes("/users") ||          
+      url.includes("/auth/refresh");
+
+    if (status === 401 && !isAuthEndpoint) {
+      // window.location.href = "/login";  // Tạm thời bỏ redirect hoặc tự xử lý logout ở nơi khác
+    }
+
+    const message =
+      error.response?.data?.message || "Lỗi server, vui lòng thử lại sau!";
+    return Promise.reject(new Error(message));  // Ném lỗi ra ngoài dưới dạng `Error(message)`
+  }
+);
+
 
 export default axiosClient;

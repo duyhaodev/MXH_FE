@@ -7,6 +7,7 @@ import { ThreadsLayout } from "./components/ThreadsLayout/ThreadsLayout.jsx";
 import { RegisterPage } from "./features/RegisterPage/RegisterPage.jsx";
 import SearchPage from "./features/SearchPage/SearchPage.jsx";
 import ActivityPage from "./features/ActivityPage/ActivityPage.jsx";
+import { Toaster } from "sonner";
 
 export default function App() {
   // Set dark mode by default

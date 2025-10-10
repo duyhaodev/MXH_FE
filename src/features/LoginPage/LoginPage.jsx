@@ -5,7 +5,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import authApi from "../../api/authApi";
-
+import { toast } from "sonner";
 
 
 export function LoginPage() {
@@ -26,13 +26,15 @@ export function LoginPage() {
 
       if (res?.code === 1000 && res?.result?.authenticated) {
         localStorage.setItem("isAuthenticated", "true");
+        toast.success("Đăng nhập thành công!");
         navigate("/feed");
       }
       else {
-        alert("Sai email hoặc mật khẩu");
+        toast.error(res?.message || "Sai email hoặc mật khẩu");
       }
     } catch (error) {
-      console.error(error)
+      toast.error(error.message);
+      console.error(error);
     } finally {
       setIsLoading(false)
     }
