@@ -4,6 +4,7 @@ import { FeedPage } from "./features/FeedPage/FeedPage.jsx";
 import { ProfilePage } from "./features/ProfilePage/ProfilePage.jsx";
 import { ThreadsLayout } from "./components/ThreadsLayout/ThreadsLayout.jsx";
 import { RegisterPage } from "./features/RegisterPage/RegisterPage.jsx";
+import { Toaster } from "sonner";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -37,41 +38,48 @@ export default function App() {
     setProfileUsername(undefined);
   };
 
-  if (!isLoggedIn) {
-  return showRegister ? (
-    <RegisterPage onBackToLogin={() => setShowRegister(false)} />
-  ) : (
-    <LoginPage
-      onLogin={handleLogin}
-      onRegister={() => setShowRegister(true)}
-    />
-  );
-}
+   return (
+    <>
+      <Toaster richColors position="top-right" />
 
-  return (
-    <ThreadsLayout currentPage={currentPage} onNavigate={handleNavigate}>
-      {currentPage === "feed" && (
-        <FeedPage onProfileClick={handleProfileClick} />
+      {!isLoggedIn ? (
+        showRegister ? (
+          <RegisterPage onBackToLogin={() => setShowRegister(false)} />
+        ) : (
+          <LoginPage
+            onLogin={handleLogin}
+            onRegister={() => setShowRegister(true)}
+          />
+        )
+      ) : (
+        <ThreadsLayout currentPage={currentPage} onNavigate={handleNavigate}>
+          {currentPage === "feed" && (
+            <FeedPage onProfileClick={handleProfileClick} />
+          )}
+
+          {currentPage === "search" && (
+            <div className="p-8 text-center">
+              <h2 className="text-2xl font-semibold mb-4">Search</h2>
+              <p className="text-muted-foreground">Search functionality coming soon...</p>
+            </div>
+          )}
+
+          {currentPage === "activity" && (
+            <div className="p-8 text-center">
+              <h2 className="text-2xl font-semibold mb-4">Activity</h2>
+              <p className="text-muted-foreground">Activity notifications coming soon...</p>
+            </div>
+          )}
+
+          {currentPage === "profile" && (
+            <ProfilePage
+              username={profileUsername}
+              onBack={handleBackToFeed}
+              onProfileClick={handleProfileClick}
+            />
+          )}
+        </ThreadsLayout>
       )}
-      {currentPage === "search" && (
-        <div className="p-8 text-center">
-          <h2 className="text-2xl font-semibold mb-4">Search</h2>
-          <p className="text-muted-foreground">Search functionality coming soon...</p>
-        </div>
-      )}
-      {currentPage === "activity" && (
-        <div className="p-8 text-center">
-          <h2 className="text-2xl font-semibold mb-4">Activity</h2>
-          <p className="text-muted-foreground">Activity notifications coming soon...</p>
-        </div>
-      )}
-      {currentPage === "profile" && (
-        <ProfilePage
-          username={profileUsername}
-          onBack={handleBackToFeed}
-          onProfileClick={handleProfileClick}
-        />
-      )}
-    </ThreadsLayout>
+    </>
   );
 }

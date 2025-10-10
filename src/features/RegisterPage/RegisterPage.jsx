@@ -4,6 +4,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import authApi from "../../api/authApi";
+import { toast } from "sonner";
 
 export function RegisterPage({ onBackToLogin }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -19,8 +20,7 @@ export function RegisterPage({ onBackToLogin }) {
       username,
       name,
       email,
-      password,
-      birthDate: birthDate || null,
+      password
     };
 
     try {
@@ -29,14 +29,14 @@ export function RegisterPage({ onBackToLogin }) {
       console.log("Register response:", res);
 
       if (res?.code === 1000) {
-        alert("Đăng ký thành công! Hãy đăng nhập.");
+        toast.success("Đăng ký thành công! Hãy đăng nhập.");
         onBackToLogin?.();
       } else {
-        alert(res?.message || "Đăng ký thất bại");
+        toast.error(res?.message || "Đăng ký thất bại");
       }
     } catch (error) {
+      toast.error(error.message);
       console.error(error);
-      alert("Lỗi server");
     } finally {
       setIsLoading(false);
     }
