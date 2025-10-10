@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button.js";
 import { Textarea } from "../../components/ui/textarea.js";
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar.js";
@@ -6,9 +7,14 @@ import { Image, Smile, AtSign } from "lucide-react";
 import { PostCard } from "../../components/PostCard/PostCard.jsx";
 import { mockPosts, currentUser } from "../../data/mockData.js";
 
-export function FeedPage({ onProfileClick }) {
+export function FeedPage() {
+  const navigate = useNavigate();
   const [newPost, setNewPost] = useState("");
   const [posts, setPosts] = useState(mockPosts);
+
+  const handleProfileClick = (username) => {
+    navigate(`/profile/${username}`);
+  };
 
   const handleCreatePost = () => {
     if (!newPost.trim()) return;
@@ -96,7 +102,7 @@ export function FeedPage({ onProfileClick }) {
           <PostCard
             key={post.id}
             post={post}
-            onProfileClick={onProfileClick}
+            onProfileClick={handleProfileClick}
           />
         ))}
       </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button.js";
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar.js";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs.js";
@@ -6,7 +7,9 @@ import { MoreHorizontal, Share, Verified, ArrowLeft } from "lucide-react";
 import { PostCard } from "../../components/PostCard/PostCard.jsx";
 import { mockUsers, mockPosts, currentUser } from "../../data/mockData.js";
 
-export function ProfilePage({ username, onBack, onProfileClick }) {
+export function ProfilePage() {
+  const { username } = useParams();
+  const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(false);
   
   // Find user by username or default to current user
@@ -18,6 +21,14 @@ export function ProfilePage({ username, onBack, onProfileClick }) {
   
   // Filter posts by this user
   const userPosts = mockPosts.filter(post => post.author.id === user.id);
+
+  const handleProfileClick = (username) => {
+    navigate(`/profile/${username}`);
+  };
+
+  const handleBack = () => {
+    navigate("/feed");
+  };
 
   const formatNumber = (num) => {
     if (num >= 1000000) {
@@ -37,7 +48,7 @@ export function ProfilePage({ username, onBack, onProfileClick }) {
       {/* Header */}
       <div className="border-b border-border p-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={onBack} className="p-2">
+          <Button variant="ghost" size="sm" onClick={handleBack} className="p-2">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
@@ -133,7 +144,7 @@ export function ProfilePage({ username, onBack, onProfileClick }) {
                 <PostCard
                   key={post.id}
                   post={post}
-                  onProfileClick={onProfileClick}
+                  onProfileClick={handleProfileClick}
                 />
               ))}
             </div>

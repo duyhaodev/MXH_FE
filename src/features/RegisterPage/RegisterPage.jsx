@@ -1,14 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import authApi from "../../api/authApi";
 
-export function RegisterPage({ onBackToLogin }) {
+export function RegisterPage() {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [username, setUsername] = useState("");
-  const [name, setName] = useState("");
+  const [userName, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -16,11 +18,13 @@ export function RegisterPage({ onBackToLogin }) {
     e.preventDefault();
 
     const values = {
-      username,
-      name,
+      userName,
+      fullName,
       email,
       password
     };
+
+    console.log(username);
 
     try {
       setIsLoading(true);
@@ -29,7 +33,7 @@ export function RegisterPage({ onBackToLogin }) {
 
       if (res?.code === 1000) {
         alert("Đăng ký thành công! Hãy đăng nhập.");
-        onBackToLogin?.();
+        navigate("/login");
       } else {
         alert(res?.message || "Đăng ký thất bại");
       }
@@ -62,7 +66,7 @@ export function RegisterPage({ onBackToLogin }) {
                 <Input
                   id="username"
                   name="username"
-                  value={username}
+                  value={userName}
                   onChange={(e) => setUsername(e.target.value)}
                   autoComplete="off"
                   required
@@ -70,12 +74,12 @@ export function RegisterPage({ onBackToLogin }) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="fullname">Full Name</Label>
                 <Input
-                  id="name"
-                  name="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  id="fullname"
+                  fullname="fullname"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   autoComplete="off"
                   required
                 />
@@ -118,7 +122,7 @@ export function RegisterPage({ onBackToLogin }) {
                   type="button"
                   variant="link"
                   className="p-0 h-auto text-sm"
-                  onClick={onBackToLogin}
+                  onClick={() => navigate("/login")}
                 >
                   Already have an account? Sign in
                 </Button>

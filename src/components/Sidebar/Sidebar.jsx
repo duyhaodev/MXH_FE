@@ -1,14 +1,17 @@
 import { Home, Search, Heart, User, Edit, Menu } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button.js";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar.js";
 import { currentUser } from "../../data/mockData.js";
 
-export function Sidebar({ currentPage, onNavigate }) {
+export function Sidebar({ currentPage }) {
+  const navigate = useNavigate();
+
   const menuItems = [
-    { id: "feed", label: "Home", icon: Home },
-    { id: "search", label: "Search", icon: Search },
-    { id: "activity", label: "Activity", icon: Heart },
-    { id: "profile", label: "Profile", icon: User },
+    { id: "feed", label: "Home", icon: Home, path: "/feed" },
+    { id: "search", label: "Search", icon: Search, path: "/search" },
+    { id: "activity", label: "Activity", icon: Heart, path: "/activity" },
+    { id: "profile", label: "Profile", icon: User, path: "/profile" },
   ];
 
   return (
@@ -30,7 +33,7 @@ export function Sidebar({ currentPage, onNavigate }) {
                 key={item.id}
                 variant={isActive ? "secondary" : "ghost"}
                 className="w-full justify-start h-12 px-4"
-                onClick={() => onNavigate(item.id)}
+                onClick={() => navigate(item.path)}
               >
                 <Icon className="w-6 h-6 mr-4" />
                 <span className="text-base">{item.label}</span>
@@ -51,7 +54,7 @@ export function Sidebar({ currentPage, onNavigate }) {
         <Button
           variant="ghost"
           className="w-full justify-start h-auto p-3"
-          onClick={() => onNavigate("profile")}
+          onClick={() => navigate("/profile")}
         >
           <Avatar className="w-10 h-10 mr-3">
             <AvatarImage src={currentUser.avatar} alt={currentUser.displayName} />

@@ -1,11 +1,15 @@
+import { Outlet, useLocation } from "react-router-dom";
 import { Sidebar } from "../Sidebar/Sidebar";
 
-export function ThreadsLayout({ children, currentPage, onNavigate }) {
+export function ThreadsLayout() {
+  const location = useLocation();
+  const currentPage = location.pathname.split('/')[1] || 'feed';
+
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar currentPage={currentPage} onNavigate={onNavigate} />
+      <Sidebar currentPage={currentPage} />
       <main className="flex-1 border-r border-border overflow-y-auto">
-        {children}
+        <Outlet />
       </main>
       <div className="w-80 p-6 hidden lg:block">
         {/* Right sidebar for suggested users, trending, etc. */}

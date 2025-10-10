@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -7,7 +8,8 @@ import authApi from "../../api/authApi";
 
 
 
-export function LoginPage({ onLogin, onRegister }) {
+export function LoginPage() {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +26,7 @@ export function LoginPage({ onLogin, onRegister }) {
 
       if (res?.code === 1000 && res?.result?.authenticated) {
         localStorage.setItem("isAuthenticated", "true");
-        onLogin?.();
+        navigate("/feed");
       }
       else {
         alert("Sai email hoặc mật khẩu");
@@ -93,7 +95,7 @@ export function LoginPage({ onLogin, onRegister }) {
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
                 Don't have an account?{" "}
-                <Button variant="link" className="p-0 h-auto" onClick={() => onRegister?.()}>
+                <Button variant="link" className="p-0 h-auto" onClick={() => navigate("/register")}>
                   Sign up
                 </Button>
               </p>
