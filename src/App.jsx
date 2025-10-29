@@ -7,33 +7,63 @@ import { ThreadsLayout } from "./components/ThreadsLayout/ThreadsLayout.jsx";
 import { RegisterPage } from "./features/RegisterPage/RegisterPage.jsx";
 import SearchPage from "./features/SearchPage/SearchPage.jsx";
 import ActivityPage from "./features/ActivityPage/ActivityPage.jsx";
+<<<<<<< Updated upstream
+=======
+import { Toaster } from "sonner";
+import { verifyToken } from "./store/userSlice.js";
+import { useDispatch, useSelector } from "react-redux";
+import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx"
+import { Spinner } from "@/components/ui/spinner"
+>>>>>>> Stashed changes
 
 export default function App() {
+  const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.user);
+
   // Set dark mode by default
   useEffect(() => {
     document.documentElement.classList.add('dark');
-  }, []);
+    dispatch(verifyToken());
+  }, [dispatch]);
+
+  // Khi đang verify token, chặn render router để tránh flash / redirect sai
+  if (loading) 
+    return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Spinner />
+    </div>
+  )
 
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Auth Routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+    <>
+    <Toaster richColors position="top-right" />
+      <BrowserRouter>
+        <Routes>
+          {/* Auth Routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-        {/* Protected Routes with Layout */}
-        <Route path="/" element={<ThreadsLayout />}>
-          <Route index element={<Navigate to="/feed" replace />} />
-          <Route path="feed" element={<FeedPage />} />
-          <Route path="search" element={ <SearchPage />} />
-          <Route path="activity" element={ <ActivityPage /> } />
-          <Route path="profile/:username" element={<ProfilePage />} />
-          <Route path="profile" element={<ProfilePage />} />
-        </Route>
+          {/* Protected Routes with Layout */}
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <ThreadsLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<FeedPage />} />
+            <Route path="feed" element={<FeedPage />} />
+            <Route path="search" element={ <SearchPage />} />
+            <Route path="activity" element={ <ActivityPage /> } />
+            <Route path="profile/:username" element={<ProfilePage />} />
+            <Route path="profile" element={<ProfilePage />} />
+          </Route>
 
-        {/* Catch all - redirect to feed */}
-        <Route path="*" element={<Navigate to="/feed" replace />} />
-      </Routes>
-    </BrowserRouter>
+          {/* Catch all - redirect to feed */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter> 
+    </>
   );
 }
