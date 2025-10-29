@@ -5,11 +5,18 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import authApi from "../../api/authApi";
+<<<<<<< Updated upstream
+
+=======
 import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { login, fetchMyInfo } from "../../store/userSlice";
+>>>>>>> Stashed changes
 
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,6 +28,7 @@ export function LoginPage() {
     
     try {
       setIsLoading(true);
+<<<<<<< Updated upstream
       const res = await authApi.login(values);
       console.log("Login response:", res);
 
@@ -33,10 +41,22 @@ export function LoginPage() {
         toast.error(res?.message || "Sai email hoặc mật khẩu");
       }
     } catch (error) {
-      toast.error(error.message);
-      console.error(error);
+      console.error(error)
+=======
+      // dispatch login thunk
+      const result = await dispatch(login(values)).unwrap();
+      // login thành công -> fetchMyInfo đã được dispatch trong thunk login, 
+      // nhưng gọi thêm lần nữa an toàn:
+      dispatch(fetchMyInfo());
+      toast.success("Đăng nhập thành công!");
+      navigate("/feed");
+    } catch (error) {
+        console.error(error);
+        const message = error?.message || error?.detail || "Sai email hoặc mật khẩu";
+        toast.error(message);
+>>>>>>> Stashed changes
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   };
 
