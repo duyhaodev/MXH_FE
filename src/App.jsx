@@ -16,6 +16,8 @@ export default function App() {
   }, []);
 
   return (
+    <>
+    <Toaster richColors position="top-right" />
     <BrowserRouter>
       <Routes>
         {/* Auth Routes */}
@@ -36,5 +38,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/feed" replace />} />
       </Routes>
     </BrowserRouter>
+    </>
   );
 }
