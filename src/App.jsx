@@ -7,14 +7,11 @@ import { ThreadsLayout } from "./components/ThreadsLayout/ThreadsLayout.jsx";
 import { RegisterPage } from "./features/RegisterPage/RegisterPage.jsx";
 import SearchPage from "./features/SearchPage/SearchPage.jsx";
 import ActivityPage from "./features/ActivityPage/ActivityPage.jsx";
-<<<<<<< Updated upstream
-=======
 import { Toaster } from "sonner";
 import { verifyToken } from "./store/userSlice.js";
 import { useDispatch, useSelector } from "react-redux";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx"
 import { Spinner } from "@/components/ui/spinner"
->>>>>>> Stashed changes
 
 export default function App() {
   const dispatch = useDispatch();
