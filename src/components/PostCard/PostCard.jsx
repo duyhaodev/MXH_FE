@@ -10,6 +10,9 @@ export function PostCard({ post, onProfileClick }) {
   const fullName = post.fullName ?? post.user?.fullName ?? "Unknown";
   const avatarUrl = post.avatarUrl ?? post.user?.avatarUrl ?? "/default-avatar.png";
   const createdAt = post.createdAt ?? post.created_time ?? post.created_at ?? null;
+  // lấy media
+  const mediaUrl = post.mediaUrl ?? post.imageUrl ?? post.image ?? null;
+  const mediaType = post.mediaType ?? post.type ?? null;
 
   const displayName = fullName || "Unknown";
   const handle = username || "unknown";
@@ -52,6 +55,8 @@ export function PostCard({ post, onProfileClick }) {
     : num >= 1_000 ? (num / 1_000).toFixed(1) + "K"
     : String(num);
 
+
+
   return (
     <div className="border-b border-border p-4 hover:bg-muted/50 transition-colors">
       <div className="flex items-start gap-3">
@@ -93,31 +98,57 @@ export function PostCard({ post, onProfileClick }) {
 
           <div className="mb-3">
             <p className="whitespace-pre-wrap">{post.content}</p>
-            {post.mediaUrl && (
+
+            {/* --- PHẦN MEDIA (ảnh hoặc video) --- */}
+            {mediaUrl && (
               <div className="mt-3 flex justify-center">
-                <img
-                  src={
-                    /^https?:\/\//i.test(post.mediaUrl)
-                      ? post.mediaUrl
-                      : `${import.meta.env.VITE_BACKEND_URL || ""}${post.mediaUrl}`
-                  }
-                  alt="post media"
-                  className="block rounded-2xl border border-border/30 object-contain"
-                  style={{
-                    maxWidth: "min(680px, 90%)", // không vượt quá 680px
-                    maxHeight: "420px",           // giới hạn chiều cao
-                    width: "auto",
-                    height: "auto",
-                    borderRadius: "22px",         // đảm bảo bo góc thật
-                  }}
-                  loading="lazy"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
+                {mediaType === "video" ? (
+                  <video
+                    src={
+                      /^https?:\/\//i.test(mediaUrl)
+                        ? mediaUrl
+                        : `${import.meta.env.VITE_BACKEND_URL || ""}${mediaUrl}`
+                    }
+                    controls
+                    className="block rounded-2xl border border-border/30 object-contain"
+                    style={{
+                      maxWidth: "min(680px, 90%)",
+                      maxHeight: "420px",
+                      width: "auto",
+                      height: "auto",
+                      borderRadius: "22px",
+                      backgroundColor: "#000", // nền đen cho video
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={
+                      /^https?:\/\//i.test(mediaUrl)
+                        ? mediaUrl
+                        : `${import.meta.env.VITE_BACKEND_URL || ""}${mediaUrl}`
+                    }
+                    alt="post media"
+                    className="block rounded-2xl border border-border/30 object-contain"
+                    style={{
+                      maxWidth: "min(680px, 90%)", // không vượt quá 680px
+                      maxHeight: "420px",           // giới hạn chiều cao
+                      width: "auto",
+                      height: "auto",
+                      borderRadius: "22px",         // đảm bảo bo góc thật
+                    }}
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                )}
               </div>
             )}
           </div>
+
           <div className="flex items-center justify-between max-w-md">
             <Button variant="ghost" size="sm" className="p-2 h-auto group" aria-label="Comments">
               <MessageCircle className="w-5 h-5 group-hover:text-blue-500 transition-colors" />

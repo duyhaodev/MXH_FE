@@ -6,7 +6,7 @@ export const fetchFeed = createAsyncThunk(
   "posts/fetchFeed",
   async ({ page = 0, size = 20 }, { rejectWithValue }) => {
     try {
-      const res = await postApi.getFeed({ page, size }); // res: PostResponse[]
+      const res = await postApi.getFeed({ page, size }); // res: PostResponse[] (axiosClient trả response.data)
       const data = Array.isArray(res) ? res : [];
       return { page, size, data };
     } catch (err) {
@@ -17,13 +17,15 @@ export const fetchFeed = createAsyncThunk(
 
 // Tạo bài viết
 export const createPost = createAsyncThunk(
-  "posts/createPost",
-  async (payload, { rejectWithValue }) => {
+  "posts/create",
+  async (formData, { rejectWithValue }) => {
     try {
-      const res = await postApi.create(payload); // res: PostResponse
-      return res;
+      const res = await postApi.create(formData);
+      // ❗ axiosClient đã trả về response.data => res chính là PostResponse
+      return res; // (KHÔNG .data nữa)
     } catch (err) {
-      return rejectWithValue(err?.message || "Đăng bài thất bại");
+      // interceptor đã ném new Error(message) => lấy err.message
+      return rejectWithValue({ message: err?.message || "Create post failed" });
     }
   }
 );
@@ -56,16 +58,14 @@ const postsSlice = createSlice({
       })
       .addCase(fetchFeed.fulfilled, (state, action) => {
         const { page, data } = action.payload;
-        // nếu backend trả createdAt
         const sorted = data.slice().sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
         if (page === 0) {
-            state.items = sorted;
+          state.items = sorted;
         } else {
-            state.items = [...state.items, ...sorted];
+          state.items = [...state.items, ...sorted];
         }
-
         state.page = page + 1;
         state.loading = false;
       })
@@ -81,7 +81,7 @@ const postsSlice = createSlice({
       .addCase(createPost.fulfilled, (state, action) => {
         state.items = [action.payload, ...state.items]; // bài mới lên đầu
         state.creating = false;
-    })
+      })
       .addCase(createPost.rejected, (state, action) => {
         state.creating = false;
         state.error = action.payload?.message || "Đăng bài thất bại";
