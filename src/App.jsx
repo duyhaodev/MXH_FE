@@ -44,8 +44,7 @@ export default function App() {
           {/* Auth Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-
-<<<<<<< HEAD
+    
           {/* Messages route rendered full-screen (outside ThreadsLayout) */}
           <Route
             path="/messages"
@@ -57,18 +56,6 @@ export default function App() {
           />
           {/* Support legacy/singular path */}
           <Route path="/message" element={<Navigate to="/messages" replace />} />
-=======
-        {/* Protected Routes with Layout */}
-        <Route path="/" element={<ThreadsLayout />}>
-          <Route index element={<Navigate to="/feed" replace />} />
-          <Route path="feed" element={<FeedPage />} />
-          <Route path="search" element={ <SearchPage />} />
-          <Route path="search/all-results" element={<AllResultsPage />} />
-          <Route path="activity" element={ <ActivityPage /> } />
-          <Route path="profile/:username" element={<ProfilePage />} />
-          <Route path="profile" element={<ProfilePage />} />
-        </Route>
->>>>>>> Tram
 
           {/* Protected Routes with Layout */}
           <Route 
@@ -82,6 +69,7 @@ export default function App() {
             <Route index element={<FeedPage />} />
             <Route path="feed" element={<FeedPage />} />
             <Route path="search" element={ <SearchPage />} />
+            <Route path="search/all-results" element={<AllResultsPage />} />
             <Route path="activity" element={ <ActivityPage /> } />
             <Route path="profile/:username" element={<ProfilePage />} />
             <Route path="profile" element={<ProfilePage />} />

@@ -9,6 +9,8 @@ export function Sidebar({ currentPage }) {
   const navigate = useNavigate();
   const profile = useSelector((state) => state.user.profile);
 
+  console.log(profile);
+
   const currentUser = {
     displayName: profile.fullName,
     username: profile.userName,
