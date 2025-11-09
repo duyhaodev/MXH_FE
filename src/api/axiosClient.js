@@ -16,6 +16,12 @@ axiosClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Nếu là POST /posts và đang gửi FormData → xoá Content-Type để browser tự set boundary
+    const isCreatePost = config.method === 'post' && (config.url || '').startsWith('/posts');
+    if (isCreatePost && config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+
     return config;
   }, (error) => {
     return Promise.reject(error);
