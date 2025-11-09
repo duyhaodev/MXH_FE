@@ -21,7 +21,7 @@ export const createPost = createAsyncThunk(
   async (formData, { rejectWithValue }) => {
     try {
       const res = await postApi.create(formData);
-      // ❗ axiosClient đã trả về response.data => res chính là PostResponse
+      // axiosClient đã trả về response.data => res chính là PostResponse
       return res; // (KHÔNG .data nữa)
     } catch (err) {
       // interceptor đã ném new Error(message) => lấy err.message

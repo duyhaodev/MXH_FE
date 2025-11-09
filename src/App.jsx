@@ -26,9 +26,12 @@ export default function App() {
   // Khi đang verify token, chặn render router để tránh flash / redirect sai
   if (loading) 
     return (
-    <div className="min-h-screen flex items-center justify-center">
-      <Spinner />
-    </div>
+      <>
+        <Toaster richColors position="top-right" />
+        <div className="min-h-screen flex items-center justify-center">
+          <Spinner />
+        </div>
+      </>
   )
 
   return (
