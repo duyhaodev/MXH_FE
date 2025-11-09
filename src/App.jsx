@@ -6,6 +6,7 @@ import { ProfilePage } from "./features/ProfilePage/ProfilePage.jsx";
 import { ThreadsLayout } from "./components/ThreadsLayout/ThreadsLayout.jsx";
 import { RegisterPage } from "./features/RegisterPage/RegisterPage.jsx";
 import SearchPage from "./features/SearchPage/SearchPage.jsx";
+import AllResultsPage from "./features/SearchPage/AllResultsPage.jsx";
 import ActivityPage from "./features/ActivityPage/ActivityPage.jsx";
 import { Toaster } from "sonner";
 
@@ -27,6 +28,7 @@ export default function App() {
           <Route index element={<Navigate to="/feed" replace />} />
           <Route path="feed" element={<FeedPage />} />
           <Route path="search" element={ <SearchPage />} />
+          <Route path="search/all-results" element={<AllResultsPage />} />
           <Route path="activity" element={ <ActivityPage /> } />
           <Route path="profile/:username" element={<ProfilePage />} />
           <Route path="profile" element={<ProfilePage />} />
