@@ -5,13 +5,9 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import authApi from "../../api/authApi";
-<<<<<<< Updated upstream
-
-=======
 import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { login, fetchMyInfo } from "../../store/userSlice";
->>>>>>> Stashed changes
 
 
 export function LoginPage() {
@@ -28,20 +24,6 @@ export function LoginPage() {
     
     try {
       setIsLoading(true);
-<<<<<<< Updated upstream
-      const res = await authApi.login(values);
-      console.log("Login response:", res);
-
-      if (res?.code === 1000 && res?.result?.authenticated) {
-        localStorage.setItem("isAuthenticated", "true");
-        navigate("/feed");
-      }
-      else {
-        alert("Sai email hoặc mật khẩu");
-      }
-    } catch (error) {
-      console.error(error)
-=======
       // dispatch login thunk
       const result = await dispatch(login(values)).unwrap();
       // login thành công -> fetchMyInfo đã được dispatch trong thunk login, 
@@ -53,7 +35,6 @@ export function LoginPage() {
         console.error(error);
         const message = error?.message || error?.detail || "Sai email hoặc mật khẩu";
         toast.error(message);
->>>>>>> Stashed changes
     } finally {
       setIsLoading(false);
     }

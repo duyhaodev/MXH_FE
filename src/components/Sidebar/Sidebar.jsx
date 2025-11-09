@@ -2,7 +2,6 @@ import { Home, Search, Heart, User, Edit, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button.js";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar.js";
-import { currentUser } from "../../data/mockData.js";
 import { useSelector } from "react-redux";
 
 

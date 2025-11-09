@@ -7,14 +7,12 @@ import { ThreadsLayout } from "./components/ThreadsLayout/ThreadsLayout.jsx";
 import { RegisterPage } from "./features/RegisterPage/RegisterPage.jsx";
 import SearchPage from "./features/SearchPage/SearchPage.jsx";
 import ActivityPage from "./features/ActivityPage/ActivityPage.jsx";
-<<<<<<< Updated upstream
-=======
+import { MessagesPage } from "./features/MessagePage/MessagePage.jsx";
 import { Toaster } from "sonner";
 import { verifyToken } from "./store/userSlice.js";
 import { useDispatch, useSelector } from "react-redux";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx"
 import { Spinner } from "@/components/ui/spinner"
->>>>>>> Stashed changes
 
 export default function App() {
   const dispatch = useDispatch();
@@ -43,6 +41,18 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
+          {/* Messages route rendered full-screen (outside ThreadsLayout) */}
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute>
+                <MessagesPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* Support legacy/singular path */}
+          <Route path="/message" element={<Navigate to="/messages" replace />} />
+
           {/* Protected Routes with Layout */}
           <Route 
             path="/" 
@@ -58,6 +68,7 @@ export default function App() {
             <Route path="activity" element={ <ActivityPage /> } />
             <Route path="profile/:username" element={<ProfilePage />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="messages" element={<MessagesPage />} />
           </Route>
 
           {/* Catch all - redirect to feed */}
