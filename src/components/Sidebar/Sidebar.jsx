@@ -2,10 +2,18 @@ import { Home, Search, Heart, User, Edit, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button.js";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar.js";
-import { currentUser } from "../../data/mockData.js";
+import { useSelector } from "react-redux";
+
 
 export function Sidebar({ currentPage }) {
   const navigate = useNavigate();
+  const profile = useSelector((state) => state.user.profile);
+
+  const currentUser = {
+    displayName: profile.fullName,
+    username: profile.userName,
+    avatar: profile.avatar || null
+  }
 
   const menuItems = [
     { id: "feed", label: "Home", icon: Home, path: "/feed" },
@@ -57,8 +65,13 @@ export function Sidebar({ currentPage }) {
           onClick={() => navigate("/profile")}
         >
           <Avatar className="w-10 h-10 mr-3">
-            <AvatarImage src={currentUser.avatar} alt={currentUser.displayName} />
-            <AvatarFallback>{currentUser.displayName.charAt(0)}</AvatarFallback>
+            {currentUser.avatar ? (
+              <AvatarImage src={currentUser.avatar} alt={currentUser.displayName} />
+            ) : (
+              <AvatarFallback>
+                {(currentUser.username && currentUser.username.charAt(0))}
+              </AvatarFallback>
+            )}
           </Avatar>
           <div className="flex-1 text-left">
             <div className="font-medium">{currentUser.displayName}</div>

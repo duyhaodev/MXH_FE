@@ -102,3 +102,188 @@ export const mockPosts = [
 ];
 
 export const currentUser = mockUsers[2]; // Default logged in user
+
+export const mockMessages = [
+  {
+    id: "1",
+    user: {
+      id: "5",
+      username: "unknown_user",
+      displayName: "Unknown User",
+      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face",
+    },
+    lastMessage: "Thức dở gửi một file đính kèm.",
+    timestamp: "1 ngày",
+    unread: true,
+  },
+  {
+    id: "2",
+    user: {
+      id: "6",
+      username: "trongbinh",
+      displayName: "Trọng Bình",
+      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face",
+    },
+    lastMessage: "Bạn đã gửi một file đính kèm.",
+    timestamp: "3 ngày",
+    unread: true,
+  },
+  {
+    id: "3",
+    user: mockUsers[3],
+    lastMessage: "Bạn: Tôi đã gặp huy hoá hơn ông m...",
+    timestamp: "1 tuần",
+    unread: false,
+  },
+  {
+    id: "4",
+    user: {
+      id: "7",
+      username: "hoanpham",
+      displayName: "Hoan Pham",
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+    },
+    lastMessage: "Hoạt động 34 phút trước",
+    timestamp: "",
+    unread: false,
+  },
+  {
+    id: "5",
+    user: {
+      id: "8",
+      username: "meymall",
+      displayName: "MEY MALL",
+      avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=face",
+    },
+    lastMessage: "Hoạt động 15 phút trước",
+    timestamp: "",
+    unread: false,
+  },
+  {
+    id: "6",
+    user: {
+      id: "9",
+      username: "nguyendung",
+      displayName: "NguyenDung",
+      avatar: "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?w=100&h=100&fit=crop&crop=face",
+    },
+    lastMessage: "NguyenDung đã gửi một file đính k...",
+    timestamp: "15 tuần",
+    unread: false,
+  },
+  {
+    id: "7",
+    user: {
+      id: "10",
+      username: "tannguyen",
+      displayName: "Tấn Nguyễn",
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+    },
+    lastMessage: "Hoạt động 19 giờ trước",
+    timestamp: "",
+    unread: false,
+  },
+];
+
+export const mockConversations = {
+  "1": [
+    {
+      id: "c1_1",
+      conversationId: "1",
+      sender: "them",
+      content: "ủ ê coi chú gam xướng cũng tạp",
+      timestamp: "12:35 22/7/24",
+      type: "text",
+    },
+    {
+      id: "c1_2",
+      conversationId: "1",
+      sender: "me",
+      content: "Thây cần kỹ thuật",
+      timestamp: "12:38 22/7/24",
+      type: "text",
+    },
+    {
+      id: "c1_3",
+      conversationId: "1",
+      sender: "me",
+      content: "Bạn chỉ hơ không phóu nhỏ",
+      timestamp: "12:38 22/7/24",
+      type: "text",
+    },
+    {
+      id: "c1_4",
+      conversationId: "1",
+      sender: "me",
+      content: "Thở bán r",
+      timestamp: "12:39 22/7/24",
+      type: "text",
+    },
+    {
+      id: "c1_5",
+      conversationId: "1",
+      sender: "them",
+      content: "ủ ê náo đã cỗ phơi nùi",
+      timestamp: "18:02 Tháng 10, 2025",
+      type: "text",
+    },
+    {
+      id: "c1_6",
+      conversationId: "1",
+      sender: "them",
+      content: "z thớ",
+      timestamp: "18:02 Tháng 10, 2025",
+      type: "text",
+    },
+    {
+      id: "c1_7",
+      conversationId: "1",
+      sender: "them",
+      content: "lao sỉ nhỉa",
+      timestamp: "18:02 Tháng 10, 2025",
+      type: "text",
+    },
+    {
+      id: "c1_8",
+      conversationId: "1",
+      sender: "them",
+      content: "nkên sỉ róa",
+      timestamp: "12:58 22/7/24",
+      type: "text",
+    },
+    {
+      id: "c1_9",
+      conversationId: "1",
+      sender: "them",
+      content: "thôi Hẹp bấm r",
+      timestamp: "18:02 Tháng 10, 2025",
+      type: "text",
+    },
+    {
+      id: "c1_10",
+      conversationId: "1",
+      sender: "me",
+      content: "Sáo mê ở chỗ nà xửi ơ",
+      timestamp: "18:08 22 Tháng 10, 2025",
+      type: "text",
+    },
+  ],
+  "2": [
+    {
+      id: "c2_1",
+      conversationId: "2",
+      sender: "them",
+      content: "Chào bạn!",
+      timestamp: "10:00",
+      type: "text",
+    },
+    {
+      id: "c2_2",
+      conversationId: "2",
+      sender: "me",
+      content: "Chào bạn, có chuyện gì không?",
+      timestamp: "10:05",
+      type: "text",
+    },
+  ],
+};

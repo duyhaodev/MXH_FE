@@ -4,8 +4,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
-import authApi from "../../api/authApi";
-import { toast } from "sonner";
+import userApi from "../../api/userApi";
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -29,7 +28,7 @@ export function RegisterPage() {
 
     try {
       setIsLoading(true);
-      const res = await authApi.register(values);
+      const res = await userApi.register(values);
       console.log("Register response:", res);
 
       if (res?.code === 1000) {

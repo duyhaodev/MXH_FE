@@ -5,21 +5,21 @@ const axiosClient = axios.create({
     headers: {
         'Content-Type': 'application/json'
     },
-    // withCredentials: true
+    withCredentials: true
 });
 
 //Interceptors
 // Add a request interceptor
 axiosClient.interceptors.request.use( 
   (config) => {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   }, (error) => {
     return Promise.reject(error);
-  });
+});
 
 // Add a response interceptor
 axiosClient.interceptors.response.use(
@@ -34,7 +34,10 @@ axiosClient.interceptors.response.use(
       url.includes("/auth/refresh");
 
     if (status === 401 && !isAuthEndpoint) {
-      // window.location.href = "/login";  // Tạm thời bỏ redirect hoặc tự xử lý logout ở nơi khác
+      // token invalid or expired -> clear and redirect to login
+      localStorage.removeItem("token");
+      // Force reload to ensure app state (redux) resets; navigate to login
+      window.location.href = "/login";
     }
 
     const message =

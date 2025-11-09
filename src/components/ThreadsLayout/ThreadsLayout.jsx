@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { Sidebar } from "../Sidebar/Sidebar";
+import { MessagePopup } from "../MessagePopup/MessagePopup";
 
 export function ThreadsLayout() {
   const location = useLocation();
@@ -57,6 +58,8 @@ export function ThreadsLayout() {
           </div>
         </div>
       </div>
+              {/* Message Popup */}
+            <MessagePopup />
     </div>
   );
 }

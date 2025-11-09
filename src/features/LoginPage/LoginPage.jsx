@@ -6,10 +6,13 @@ import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import authApi from "../../api/authApi";
 import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { login, fetchMyInfo } from "../../store/userSlice";
 
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,22 +24,19 @@ export function LoginPage() {
     
     try {
       setIsLoading(true);
-      const res = await authApi.login(values);
-      console.log("Login response:", res);
-
-      if (res?.code === 1000 && res?.result?.authenticated) {
-        localStorage.setItem("isAuthenticated", "true");
-        toast.success("Đăng nhập thành công!");
-        navigate("/feed");
-      }
-      else {
-        toast.error(res?.message || "Sai email hoặc mật khẩu");
-      }
+      // dispatch login thunk
+      const result = await dispatch(login(values)).unwrap();
+      // login thành công -> fetchMyInfo đã được dispatch trong thunk login, 
+      // nhưng gọi thêm lần nữa an toàn:
+      dispatch(fetchMyInfo());
+      toast.success("Đăng nhập thành công!");
+      navigate("/feed");
     } catch (error) {
-      toast.error(error.message);
-      console.error(error);
+        console.error(error);
+        const message = error?.message || error?.detail || "Sai email hoặc mật khẩu";
+        toast.error(message);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   };
 
