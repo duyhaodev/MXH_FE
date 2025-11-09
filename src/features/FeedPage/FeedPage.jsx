@@ -18,7 +18,6 @@ import {
 } from "../../store/postsSlice";
 import { toast } from "sonner";
 import { X } from "lucide-react";
-import EmojiPicker from "emoji-picker-react"; 
 
 export function FeedPage() {
   const navigate = useNavigate();
