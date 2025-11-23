@@ -1,9 +1,10 @@
+// src/features/FeedPage/FeedPage.jsx
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button.js";
 import { Textarea } from "../../components/ui/textarea.js";
 import { Avatar, AvatarFallback } from "../../components/ui/avatar.js";
-import { Image, Smile, AtSign } from "lucide-react";
+import { Image, Smile, AtSign, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover.js";
 import EmojiPicker from "emoji-picker-react";
 import { PostCard } from "../../components/PostCard/PostCard.jsx";
@@ -18,9 +19,9 @@ import {
   selectPostsPage,
 } from "../../store/postsSlice";
 import { toast } from "sonner";
-import { X } from "lucide-react";
 
 export function FeedPage() {
+  // REDUX
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -30,71 +31,22 @@ export function FeedPage() {
   const creating = useSelector(selectPostsCreating);
   const page = useSelector(selectPostsPage);
 
+  // LOCAL STATE
   const [newPost, setNewPost] = useState("");
-  const [mediaFile, setMediaFile] = useState(null);
-  const [mediaPreview, setMediaPreview] = useState(null);
-  const [mediaKind, setMediaKind] = useState(null);
-  const fileInputRef = useRef(null);
-  const [showEmoji, setShowEmoji] = useState(false);            // bật/tắt picker
 
+  // nhiều media: { file, kind: "image" | "video", preview }
+  const [mediaFiles, setMediaFiles] = useState([]);
+  const fileInputRef = useRef(null);
+
+  // Emoji (state này chỉ để tái sử dụng cho handler, Popover tự quản lý open/close)
+  const [showEmoji, setShowEmoji] = useState(false);
+
+  // FEED: LẤY DANH SÁCH BÀI VIẾT
   useEffect(() => {
     dispatch(fetchFeed({ page: 0, size: 20 }))
       .unwrap()
       .catch(() => toast.error("Không tải được feed"));
   }, [dispatch]);
-
-  // mở hộp chọn media (ảnh hoặc video)
-  const openFilePicker = useCallback(() => fileInputRef.current?.click(), []);
-
-  const onFileChange = (e) => {
-    const file = e.target.files?.[0]; //Nếu chọn nhiều thì lấy file đầu tiên
-    if (!file) return;
-    const type = file.type || "";
-    const isImage = type.startsWith("image/");
-    const isVideo = type.startsWith("video/");
-    if (!isImage && !isVideo) {
-      toast.error("Chỉ được chọn file hình ảnh hoặc video!");
-      return;
-    }
-    // cleanup URL cũ nếu có
-    if (mediaPreview) URL.revokeObjectURL(mediaPreview);
-    setMediaFile(file);
-    setMediaKind(isImage ? "image" : "video");
-    setMediaPreview(URL.createObjectURL(file));
-  };
-
-  // cleanup preview khi component unmount
-  useEffect(() => {
-    return () => {
-      if (mediaPreview) URL.revokeObjectURL(mediaPreview);
-    };
-  }, [mediaPreview]);
-
-  const handleProfileClick = (username) => {
-    navigate(`/profile/${username}`);
-  };
-
-  const handleCreatePost = async () => {
-    const content = (newPost || "").trim();
-    if (!content && !mediaFile) return;
-
-    const fd = new FormData();
-    if (content) fd.append("content", content);
-    if (mediaFile) fd.append("image", mediaFile);
-
-    const action = await dispatch(createPost(fd));  // gọi createPost
-    if (createPost.fulfilled.match(action)) {
-      toast.success("Đăng bài thành công");
-      setNewPost("");
-      setMediaFile(null);
-      if (mediaPreview) URL.revokeObjectURL(mediaPreview); // Giải phóng URL blob cũ khỏi bộ nhớ (tránh rò rỉ RAM)
-      setMediaPreview(null);
-      setMediaKind(null);
-      if (fileInputRef.current) fileInputRef.current.value = ""; // cho phép chọn lại cùng 1 file
-    } else {
-      toast.error(action.payload?.message || "Đăng bài thất bại");
-    }
-  };
 
   const handleLoadMore = () => {
     if (loading || !hasMore) return;
@@ -103,14 +55,164 @@ export function FeedPage() {
       .catch(() => toast.error("Không tải được feed"));
   };
 
-  // khi chọn emoji chèn vào cuối nội dung
+  const handleProfileClick = (username) => {
+    navigate(`/profile/${username}`);
+  };
+
+  // ----- MEDIA: CHỌN & PREVIEW NHIỀU FILE -----
+  const openFilePicker = useCallback(() => fileInputRef.current?.click(), []);
+
+  const onFileChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const newItems = [];
+
+    for (const file of files) {
+      const type = file.type || "";
+      const isImage = type.startsWith("image/");
+      const isVideo = type.startsWith("video/");
+      if (!isImage && !isVideo) {
+        toast.error(`File "${file.name}" không phải hình hoặc video, bỏ qua.`);
+        continue;
+      }
+      const previewUrl = URL.createObjectURL(file);
+      newItems.push({
+        file,
+        kind: isImage ? "image" : "video",
+        preview: previewUrl,
+      });
+    }
+
+    if (!newItems.length) {
+      // tất cả invalid => reset input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setMediaFiles((prev) => [...prev, ...newItems]);
+
+    // cho lần sau chọn lại cùng file
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleRemoveOne = (index) => {
+    setMediaFiles((prev) => {
+      const clone = [...prev];
+      const removed = clone.splice(index, 1)[0];
+      if (removed?.preview) URL.revokeObjectURL(removed.preview);
+      return clone;
+    });
+  };
+
+  const handleRemoveAll = () => {
+    mediaFiles.forEach((m) => {
+      if (m.preview) URL.revokeObjectURL(m.preview);
+    });
+    setMediaFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // cleanup preview khi component unmount
+  useEffect(() => {
+    return () => {
+      mediaFiles.forEach((m) => {
+        if (m.preview) URL.revokeObjectURL(m.preview);
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ----- DRAG TO SCROLL PREVIEW (giống CreatePost) -----
+  const mediaScrollRef = useRef(null);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+
+  useEffect(() => {
+    const handleUp = () => {
+      const el = mediaScrollRef.current;
+      if (!isDraggingRef.current || !el) return;
+      isDraggingRef.current = false;
+      el.classList.remove("cursor-grabbing");
+    };
+
+    window.addEventListener("mouseup", handleUp);
+    window.addEventListener("mouseleave", handleUp);
+
+    return () => {
+      window.removeEventListener("mouseup", handleUp);
+      window.removeEventListener("mouseleave", handleUp);
+    };
+  }, []);
+
+  const handleMediaMouseDown = (e) => {
+    if (!mediaScrollRef.current) return;
+    if (e.button !== 0) return; // chỉ chuột trái
+
+    const el = mediaScrollRef.current;
+    isDraggingRef.current = true;
+    el.classList.add("cursor-grabbing");
+
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+  };
+
+  const handleMediaMouseMove = (e) => {
+    const el = mediaScrollRef.current;
+    if (!isDraggingRef.current || !el) return;
+
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = x - startXRef.current;
+    el.scrollLeft = scrollLeftRef.current - walk;
+  };
+
+  // ----- TẠO POST -----
+  const handleCreatePost = async () => {
+    const content = (newPost || "").trim();
+    if (!content && mediaFiles.length === 0) return;
+
+    const fd = new FormData();
+    if (content) fd.append("content", content);
+    mediaFiles.forEach((m) => {
+      // key "files" giống CreatePost + BE
+      fd.append("files", m.file);
+    });
+
+    const action = await dispatch(createPost(fd));
+    if (createPost.fulfilled.match(action)) {
+      toast.success("Đăng bài thành công");
+      setNewPost("");
+      handleRemoveAll();
+    } else {
+      toast.error(action.payload?.message || "Đăng bài thất bại");
+    }
+  };
+
+  // Emoji chèn vào cuối nội dung
   const handleEmojiClick = (emojiData) => {
     setNewPost((prev) => prev + emojiData.emoji);
     setShowEmoji(false);
   };
 
+  const hasMedia = mediaFiles.length > 0;
+
   return (
     <div className="max-w-2xl mx-auto">
+      {/* Ẩn scrollbar cho preview media */}
+      <style>
+        {`
+          .feed-media-scroll {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          }
+          .feed-media-scroll::-webkit-scrollbar {
+            display: none;
+          }
+        `}
+      </style>
+
       {/* Header */}
       <div className="border-b border-border p-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
         <h2 className="text-xl font-semibold">Home</h2>
@@ -132,54 +234,62 @@ export function FeedPage() {
               maxLength={500}
             />
 
-            {/* Preview media nếu có */}
-            {mediaPreview && (
-              <div className="mt-3 flex justify-center">
-                <div className="relative inline-block align-top">
-                  {mediaKind === "video" ? (
-                    <video
-                      src={mediaPreview}
-                      controls
-                      className="rounded-2xl border border-border/30 object-contain"
-                      style={{
-                        maxWidth: "min(750px, 90%)",
-                        maxHeight: "500px",
-                        width: "auto",
-                        height: "auto",
-                        display: "block",
-                        borderRadius: "22px",
-                        backgroundColor: "#000",
-                      }}
-                      onClick={() => fileInputRef.current?.click()}
-                    />
-                  ) : (
-                    <img
-                      src={mediaPreview}
-                      alt="preview"
-                      className="rounded-2xl border border-border/30 object-contain"
-                      style={{
-                        maxWidth: "min(750px, 90%)",
-                        maxHeight: "500px",
-                        width: "auto",
-                        height: "auto",
-                        display: "block",
-                        borderRadius: "22px",
-                      }}
-                      onClick={() => fileInputRef.current?.click()}
-                    />
-                  )}
+            {/* Preview nhiều media nếu có */}
+            {hasMedia && (
+              <div className="mt-3 space-y-2">
+                <div className="flex justify-between items-center px-1">
+                  <span className="text-xs text-muted-foreground">
+                    {mediaFiles.length} media đã chọn
+                  </span>
                   <button
-                    onClick={() => {
-                      setMediaFile(null);
-                      setMediaPreview(null);
-                      setMediaKind(null);
-                    }}
-                    className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 rounded-full p-1 transition"
-                    style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 9999 }}
-                    title="Gỡ media"
+                    type="button"
+                    onClick={handleRemoveAll}
+                    className="text-xs text-red-400 hover:underline"
                   >
-                    <X className="w-5 h-5 text-white" />
+                    Gỡ tất cả
                   </button>
+                </div>
+
+                <div className="w-full max-w-full rounded-2xl border border-border/40 bg-black/20 overflow-hidden">
+                  <div
+                    ref={mediaScrollRef}
+                    className="feed-media-scroll flex gap-3 overflow-x-auto px-3 py-3 cursor-grab"
+                    onMouseDown={handleMediaMouseDown}
+                    onMouseMove={handleMediaMouseMove}
+                    onDragStart={(e) => e.preventDefault()}
+                  >
+                    {mediaFiles.map((m, idx) => (
+                      <div
+                        key={idx}
+                        className="relative group flex-shrink-0 max-w-[150px] aspect-[3/4] rounded-xl overflow-hidden"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveOne(idx)}
+                          className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 rounded-full p-1"
+                          title="Gỡ media"
+                        >
+                          <X className="w-4 h-4 text-white" />
+                        </button>
+
+                        {m.kind === "video" ? (
+                          <video
+                            src={m.preview}
+                            preload="metadata"
+                            draggable={false}
+                            className="block w-full h-full object-cover"
+                          />
+                        ) : (
+                          <img
+                            src={m.preview}
+                            alt="preview"
+                            draggable={false}
+                            className="block w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -189,12 +299,14 @@ export function FeedPage() {
               ref={fileInputRef}
               type="file"
               accept="image/*,video/*"
+              multiple
               className="hidden"
               onChange={onFileChange}
             />
 
             <div className="flex items-center justify-between mt-3">
               <div className="flex items-center gap-4">
+                {/* Chọn media */}
                 <Button
                   type="button"
                   variant="ghost"
@@ -205,6 +317,7 @@ export function FeedPage() {
                   <Image className="w-5 h-5" />
                 </Button>
 
+                {/* Emoji */}
                 <Popover>
                   <PopoverTrigger>
                     <Button
@@ -217,17 +330,24 @@ export function FeedPage() {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-64 p-0 border-0">
-                  <EmojiPicker
-                    theme="dark"                 
-                    emojiStyle="native"          
-                    skinTonesDisabled           
-                    searchDisabled
-                    previewConfig={{ showPreview: false }}
-                    onEmojiClick={handleEmojiClick}
-                  />
-                </PopoverContent>
+                    <EmojiPicker
+                      theme="dark"
+                      emojiStyle="native"
+                      skinTonesDisabled
+                      searchDisabled
+                      previewConfig={{ showPreview: false }}
+                      onEmojiClick={handleEmojiClick}
+                    />
+                  </PopoverContent>
                 </Popover>
-                <Button type="button" variant="ghost" size="sm" className="p-2 h-auto text-muted-foreground hover:text-foreground">
+
+                {/* Mention (chưa làm logic) */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="p-2 h-auto text-muted-foreground hover:text-foreground"
+                >
                   <AtSign className="w-5 h-5" />
                 </Button>
               </div>
@@ -237,7 +357,7 @@ export function FeedPage() {
                 <Button
                   type="button"
                   onClick={handleCreatePost}
-                  disabled={creating || (!newPost.trim() && !mediaFile)}
+                  disabled={creating || (!newPost.trim() && mediaFiles.length === 0)}
                   size="sm"
                 >
                   {creating ? "Đang đăng..." : "Post"}
@@ -255,7 +375,14 @@ export function FeedPage() {
           const fullName = post.fullName ?? post.user?.fullName ?? "User";
           const avatarUrl = post.avatarUrl ?? post.user?.avatarUrl ?? "/default-avatar.png";
           const createdAt = post.createdAt ?? post.created_time ?? post.created_at;
-          const mediaUrl = post.mediaUrl ?? post.imageUrl ?? post.image ?? post.media?.url ?? null;
+
+          const mediaList = Array.isArray(post.mediaList)
+            ? post.mediaList
+            : post.media
+            ? Array.isArray(post.media)
+              ? post.media
+              : [post.media]
+            : [];
 
           return (
             <PostCard
@@ -266,7 +393,7 @@ export function FeedPage() {
                 fullName,
                 avatarUrl,
                 createdAt,
-                mediaUrl,
+                mediaList,
               }}
               onProfileClick={handleProfileClick}
             />

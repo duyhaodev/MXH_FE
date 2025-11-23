@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar.js";
 import { useSelector, useDispatch } from "react-redux";
 import { openComposer, closeComposer, selectComposerOpen, selectComposerPrefill } from "../../store/composerSlice";
 import { createPortal } from "react-dom";
-import { CreatePost } from "../../features/FeedPage/components/CreatePost.jsx";
+import { CreatePost } from "../CreatePost/CreatePost.jsx";
 
 export function Sidebar({ currentPage }) {
   const navigate = useNavigate();
