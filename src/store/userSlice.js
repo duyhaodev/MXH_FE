@@ -51,7 +51,6 @@ export const fetchMyInfo = createAsyncThunk(
       const res = await userApi.getMyInfo();
       if (!res || res.code !== 1000) return rejectWithValue(res || "FETCH_MYINFO_FAILED");
       // server trả về result; map ở đây tạm thời chỉ trả nguyên result
-        console.log(res.result);
         return res.result;
     } catch (e) {
       return rejectWithValue(e.response?.data || e.message || "FETCH_MYINFO_ERROR");
