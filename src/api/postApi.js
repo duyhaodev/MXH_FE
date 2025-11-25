@@ -8,7 +8,23 @@ const postApi = {
     });
   },
   getFeed({ page = 0, size = 20 } = {}) {
-    return axiosClient.get(`/feed?page=${page}&size=${size}`); // nhận thẳng data
+    return axiosClient.get(`/feed?page=${page}&size=${size}`);
+  },
+  // lấy bài viết của mình
+  getMyPosts() {
+    return axiosClient.get("/profile");
+  },
+  // lấy bài viết của user theo username
+  getUserPosts(username) {
+    return axiosClient.get(`/profile/${username}`);
+  },
+  // lấy profile của user theo username
+  getUserByUsername(username) {
+    return axiosClient.get(`/users/${username}`);
+  },
+  // lấy chi tiết bài viết theo id
+  getPostById(postId) {
+  return axiosClient.get(`/posts/${postId}`);
   },
 };
 

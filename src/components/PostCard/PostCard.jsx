@@ -5,7 +5,7 @@ import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { ImageViewer } from "../ImageViewer/ImageViewer.jsx";
 
-export function PostCard({ post, onProfileClick }) {
+export function PostCard({ post, onProfileClick, onPostClick }) {
   const username = post.username ?? post.user?.username ?? "unknown";
   const fullName = post.fullName ?? post.user?.fullName ?? "Unknown";
   const avatarUrl = post.avatarUrl ?? post.user?.avatarUrl ?? "/default-avatar.png";
@@ -14,7 +14,7 @@ export function PostCard({ post, onProfileClick }) {
   // list media từ BE
   const mediaList = Array.isArray(post.mediaList) ? post.mediaList : [];
   const mediaCount = mediaList.length;
-  
+
   const displayName = fullName || "Unknown";
   const handle = username || "unknown";
 
@@ -56,6 +56,13 @@ export function PostCard({ post, onProfileClick }) {
       : num >= 1_000
       ? (num / 1_000).toFixed(1) + "K"
       : String(num);
+
+  // Hàm mở trang chi tiết bài viết
+  const handleOpenPost = () => {
+    const id = post.id ?? post.postId;
+    if (!id) return;
+    onPostClick?.(id);
+  };
 
   // kích thước item khi nhiều media:
   const multiSize = useMemo(() => {
@@ -194,12 +201,19 @@ export function PostCard({ post, onProfileClick }) {
           </Avatar>
         </button>
 
-        <div className="flex-1 min-w-0">
+        {/* Xem chi tiết bài viết */}
+        <div
+          className={`flex-1 min-w-0 ${onPostClick ? "cursor-pointer" : ""}`}
+          onClick={onPostClick ? handleOpenPost : undefined}
+        >
           {/* Header */}
           <div className="flex items-center gap-2 mb-1">
             <button
               className="p-0 h-auto hover:underline"
-              onClick={() => onProfileClick?.(handle)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onProfileClick?.(handle);
+              }}
               title={displayName}
             >
               <span className="font-medium">{displayName}</span>
@@ -213,7 +227,13 @@ export function PostCard({ post, onProfileClick }) {
               {relative}
             </span>
             <div className="ml-auto">
-              <Button variant="ghost" size="sm" className="p-2 h-auto" aria-label="More">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 h-auto"
+                aria-label="More"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </div>
@@ -221,7 +241,10 @@ export function PostCard({ post, onProfileClick }) {
 
           {/* Content + media */}
           <div className="mb-3">
-            <p className="whitespace-pre-wrap">{post.content}</p>
+            {/* Nhấn vào text cũng mở chi tiết */}
+            <p className="whitespace-pre-wrap">
+              {post.content}
+            </p>
 
             {/* -------- PHẦN MEDIA -------- */}
             {mediaCount > 0 && (
@@ -248,7 +271,8 @@ export function PostCard({ post, onProfileClick }) {
                             height: "auto",
                             backgroundColor: "#000",
                           }}
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setViewerIndex(0);
                             setViewerOpen(true);
                           }}
@@ -267,7 +291,8 @@ export function PostCard({ post, onProfileClick }) {
                           height: "auto",
                         }}
                         loading="lazy"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setViewerIndex(0);
                           setViewerOpen(true);
                         }}
@@ -284,6 +309,7 @@ export function PostCard({ post, onProfileClick }) {
                         onMouseMove={handleMediaMouseMove}
                         onDragStart={(e) => e.preventDefault()}
                         className="post-media-scroll overflow-x-auto cursor-grab py-1"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <div className="flex gap-3 w-max mx-auto px-2">
                           {mediaList.map((m, idx) => {
@@ -300,8 +326,8 @@ export function PostCard({ post, onProfileClick }) {
                                   width: multiSize?.width ?? 240,
                                   height: multiSize?.height ?? 340,
                                 }}
-                                onClick={() => {
-                                  // nếu trong lượt này đã kéo thì không mở viewer
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   if (hasDraggedRef.current) return;
                                   setViewerIndex(idx);
                                   setViewerOpen(true);
@@ -336,7 +362,17 @@ export function PostCard({ post, onProfileClick }) {
 
           {/* Actions: comment / repost / like / share */}
           <div className="flex items-center justify-between max-w-md">
-            <Button variant="ghost" size="sm" className="p-2 h-auto group" aria-label="Comments">
+            {/* Comment: mở chi tiết bài viết */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 h-auto group"
+              aria-label="Comments"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenPost();
+              }}
+            >
               <MessageCircle className="w-5 h-5 group-hover:text-blue-500 transition-colors" />
               <span className="ml-1 text-sm text-muted-foreground group-hover:text-blue-500">
                 {formatNumber(post.commentCount ?? 0)}
@@ -347,7 +383,10 @@ export function PostCard({ post, onProfileClick }) {
               variant="ghost"
               size="sm"
               className="p-2 h-auto group"
-              onClick={handleRepost}
+              onClick={(e) => {
+                e.stopPropagation(); 
+                handleRepost();
+              }}
               aria-label="Repost"
             >
               <Repeat2
@@ -357,7 +396,9 @@ export function PostCard({ post, onProfileClick }) {
               />
               <span
                 className={`ml-1 text-sm ${
-                  isReposted ? "text-green-500" : "text-muted-foreground group-hover:text-green-500"
+                  isReposted
+                    ? "text-green-500"
+                    : "text-muted-foreground group-hover:text-green-500"
                 }`}
               >
                 {formatNumber(reposts)}
@@ -368,7 +409,10 @@ export function PostCard({ post, onProfileClick }) {
               variant="ghost"
               size="sm"
               className="p-2 h-auto group"
-              onClick={handleLike}
+              onClick={(e) => {
+                e.stopPropagation(); 
+                handleLike();
+              }}
               aria-label="Like"
             >
               <Heart
@@ -385,7 +429,13 @@ export function PostCard({ post, onProfileClick }) {
               </span>
             </Button>
 
-            <Button variant="ghost" size="sm" className="p-2 h-auto group" aria-label="Share">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 h-auto group"
+              aria-label="Share"
+              onClick={(e) => e.stopPropagation()}
+            >
               <Share className="w-5 h-5 group-hover:text-blue-500 transition-colors" />
             </Button>
           </div>

@@ -16,7 +16,7 @@ export function CreatePost({ open, onOpenChange }) {
   const profile = useSelector((s) => s.user.profile) ?? {};
   const displayName = profile.fullName ?? "Unknown";
   const username = profile.userName ?? "unknown";
-  const avatar = profile.avatar ?? null;
+  const avatarUrl = profile.avatarUrl ?? null;
   const creating = useSelector(selectPostsCreating);
 
   // LOCAL STATE
@@ -224,13 +224,17 @@ export function CreatePost({ open, onOpenChange }) {
         <div className="px-4 py-4">
           <div className="flex gap-3">
             <Avatar className="w-10 h-10 flex-shrink-0">
-              {avatar ? (
-                <AvatarImage src={avatar} alt={displayName} />
-              ) : (
-                <AvatarFallback>{(displayName || "U").charAt(0)}</AvatarFallback>
-              )}
+              <AvatarImage
+                src={avatarUrl}
+                alt={displayName}
+                onError={(e) => {
+                  e.currentTarget.src = "/default-avatar.png";
+                }}
+              />
+              <AvatarFallback>
+                {(displayName || "U").charAt(0)}
+              </AvatarFallback>
             </Avatar>
-
             <div className="flex-1 min-w-0">
               <div className="mb-3">
                 <div className="mb-1">

@@ -1,9 +1,8 @@
-// src/features/FeedPage/FeedPage.jsx
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button.js";
 import { Textarea } from "../../components/ui/textarea.js";
-import { Avatar, AvatarFallback } from "../../components/ui/avatar.js";
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar.js";
 import { Image, Smile, AtSign, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover.js";
 import EmojiPicker from "emoji-picker-react";
@@ -24,6 +23,10 @@ export function FeedPage() {
   // REDUX
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const profile = useSelector((s) => s.user.profile) ?? {};
+  const displayName = profile.fullName ?? "User";
+  const avatarUrl = profile.avatarUrl ?? "/default-avatar.png";
+
 
   const posts = useSelector(selectPosts);
   const hasMore = useSelector(selectPostsHasMore);
@@ -38,7 +41,7 @@ export function FeedPage() {
   const [mediaFiles, setMediaFiles] = useState([]);
   const fileInputRef = useRef(null);
 
-  // Emoji (state này chỉ để tái sử dụng cho handler, Popover tự quản lý open/close)
+  // Emoji picker
   const [showEmoji, setShowEmoji] = useState(false);
 
   // FEED: LẤY DANH SÁCH BÀI VIẾT
@@ -222,7 +225,13 @@ export function FeedPage() {
       <div className="border-b border-border p-4">
         <div className="flex gap-3">
           <Avatar className="w-10 h-10 flex-shrink-0">
-            <AvatarFallback>U</AvatarFallback>
+            <AvatarImage
+              src={avatarUrl}
+              alt={displayName}
+              onError={(e) => {
+                e.currentTarget.src = "/default-avatar.png";
+              }}
+            />
           </Avatar>
 
           <div className="flex-1 relative">
@@ -396,6 +405,7 @@ export function FeedPage() {
                 mediaList,
               }}
               onProfileClick={handleProfileClick}
+              onPostClick={(id) => navigate(`/post/${id}`)}
             />
           );
         })}

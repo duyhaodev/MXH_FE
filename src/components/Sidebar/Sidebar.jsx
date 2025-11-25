@@ -19,7 +19,7 @@ export function Sidebar({ currentPage }) {
   const currentUser = {
     displayName: profile.fullName,
     username: profile.userName,
-    avatar: profile.avatar || null
+    avatar: profile.avatarUrl || null
   }
 
   const menuItems = [
@@ -77,10 +77,16 @@ export function Sidebar({ currentPage }) {
         >
           <Avatar className="w-10 h-10 mr-3">
             {currentUser.avatar ? (
-              <AvatarImage src={currentUser.avatar} alt={currentUser.displayName} />
+              <AvatarImage 
+                src={currentUser.avatar || "/default-avatar.png"}
+                alt={currentUser.displayName}
+                onError={(e) => {
+                  e.currentTarget.src = "/default-avatar.png";
+                }} 
+              />
             ) : (
               <AvatarFallback>
-                {(currentUser.username && currentUser.username.charAt(0))}
+                {(currentUser.username && currentUser.username.charAt(0)) || "U"}
               </AvatarFallback>
             )}
           </Avatar>
