@@ -1,4 +1,4 @@
-import { Activity, useEffect } from "react";
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LoginPage } from "./features/LoginPage/LoginPage.jsx";
 import { FeedPage } from "./features/FeedPage/FeedPage.jsx";
@@ -12,21 +12,27 @@ import { MessagesPage } from "./features/MessagePage/MessagePage.jsx";
 import { Toaster } from "sonner";
 import { verifyToken } from "./store/userSlice.js";
 import { useDispatch, useSelector } from "react-redux";
-import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx"
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@/components/ui/spinner";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import PublicRoute from "./components/PublicRoute.jsx";
 
 export default function App() {
   const dispatch = useDispatch();
-  const { loading } = useSelector((state) => state.user);
+  const { loading, isAuthenticated } = useSelector((state) => state.user);
 
-  // Set dark mode by default
+  // Set dark mode by default and verify token on initial load
   useEffect(() => {
     document.documentElement.classList.add('dark');
-    dispatch(verifyToken());
+    const token = localStorage.getItem("token");
+    if (token) {
+      dispatch(verifyToken());
+    }
   }, [dispatch]);
 
-  // Khi đang verify token, chặn render router để tránh flash / redirect sai
-  if (loading) 
+  // While verifying token, show a loader to prevent route flashing
+  // We only want to show this initial loading screen if a token exists and we are verifying it.
+  const isVerifyingToken = loading && !isAuthenticated && localStorage.getItem("token");
+  if (isVerifyingToken) {
     return (
       <>
         <Toaster richColors position="top-right" />
@@ -34,52 +40,42 @@ export default function App() {
           <Spinner />
         </div>
       </>
-  )
+    );
+  }
 
   return (
     <>
-    <Toaster richColors position="top-right" />
+      <Toaster richColors position="top-right" />
       <BrowserRouter>
         <Routes>
-          {/* Auth Routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-    
-          {/* Messages route rendered full-screen (outside ThreadsLayout) */}
-          <Route
-            path="/messages"
-            element={
-              <ProtectedRoute>
-                <MessagesPage />
-              </ProtectedRoute>
-            }
-          />
-          {/* Support legacy/singular path */}
-          <Route path="/message" element={<Navigate to="/messages" replace />} />
-
-          {/* Protected Routes with Layout */}
-          <Route 
-            path="/" 
-            element={
-              <ProtectedRoute>
-                <ThreadsLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<FeedPage />} />
-            <Route path="feed" element={<FeedPage />} />
-            <Route path="search" element={ <SearchPage />} />
-            <Route path="search/all-results" element={<AllResultsPage />} />
-            <Route path="activity" element={ <ActivityPage /> } />
-            <Route path="profile/:username" element={<ProfilePage />} />
-            <Route path="profile" element={<ProfilePage />} />
-            <Route path="messages" element={<MessagesPage />} />
+          {/* Public routes (Login, Register) - Redirect if authenticated */}
+          <Route element={<PublicRoute />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
           </Route>
 
-          {/* Catch all - redirect to feed */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Protected Routes - Redirect to login if not authenticated */}
+          <Route element={<ProtectedRoute />}>
+            {/* Messages route rendered full-screen (outside ThreadsLayout) */}
+            <Route path="/messages" element={<MessagesPage />} />
+            <Route path="/message" element={<Navigate to="/messages" replace />} />
+
+            {/* Main app routes with Layout */}
+            <Route path="/" element={<ThreadsLayout />}>
+              <Route index element={<Navigate to="/feed" replace />} />
+              <Route path="feed" element={<FeedPage />} />
+              <Route path="search" element={<SearchPage />} />
+              <Route path="search/all-results" element={<AllResultsPage />} />
+              <Route path="activity" element={<ActivityPage />} />
+              <Route path="profile/:username" element={<ProfilePage />} />
+              <Route path="profile" element={<ProfilePage />} />
+            </Route>
+          </Route>
+
+          {/* Catch-all for logged-in users - redirect to feed. For non-logged in, ProtectedRoute handles redirect to login. */}
+          <Route path="*" element={<Navigate to="/feed" replace />} />
         </Routes>
-      </BrowserRouter> 
+      </BrowserRouter>
     </>
   );
 }
