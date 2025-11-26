@@ -25,7 +25,7 @@ export function FeedPage() {
   const dispatch = useDispatch();
   const profile = useSelector((s) => s.user.profile) ?? {};
   const displayName = profile.fullName ?? "User";
-  const avatarUrl = profile.avatarUrl ?? "/default-avatar.png";
+  const avatarUrl = profile.avatarUrl; // Let fallback handle missing URL
 
 
   const posts = useSelector(selectPosts);
@@ -225,13 +225,8 @@ export function FeedPage() {
       <div className="border-b border-border p-4">
         <div className="flex gap-3">
           <Avatar className="w-10 h-10 flex-shrink-0">
-            <AvatarImage
-              src={avatarUrl}
-              alt={displayName}
-              onError={(e) => {
-                e.currentTarget.src = "/default-avatar.png";
-              }}
-            />
+            <AvatarImage src={avatarUrl} alt={displayName} />
+            <AvatarFallback>{displayName?.charAt(0) || 'U'}</AvatarFallback>
           </Avatar>
 
           <div className="flex-1 relative">
@@ -382,7 +377,7 @@ export function FeedPage() {
         {posts.map((post) => {
           const username = post.username ?? post.user?.username ?? "unknown";
           const fullName = post.fullName ?? post.user?.fullName ?? "User";
-          const avatarUrl = post.avatarUrl ?? post.user?.avatarUrl ?? "/default-avatar.png";
+          const avatarUrl = post.avatarUrl ?? post.user?.avatarUrl;
           const createdAt = post.createdAt ?? post.created_time ?? post.created_at;
 
           const mediaList = Array.isArray(post.mediaList)

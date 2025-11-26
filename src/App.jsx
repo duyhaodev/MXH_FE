@@ -12,15 +12,10 @@ import { MessagesPage } from "./features/MessagePage/MessagePage.jsx";
 import { Toaster } from "sonner";
 import { verifyToken } from "./store/userSlice.js";
 import { useDispatch, useSelector } from "react-redux";
-<<<<<<< HEAD
-import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx"
 import { Spinner } from "@/components/ui/spinner"
 import { PostDetailPage } from "./features/PostDetailPage/PostDetailPage.jsx";
-=======
-import { Spinner } from "@/components/ui/spinner";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import PublicRoute from "./components/PublicRoute.jsx";
->>>>>>> DuyHao
 
 export default function App() {
   const dispatch = useDispatch();
@@ -54,47 +49,10 @@ export default function App() {
       <Toaster richColors position="top-right" />
       <BrowserRouter>
         <Routes>
-<<<<<<< HEAD
-          {/* Auth Routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-    
-          {/* Messages route rendered full-screen (outside ThreadsLayout) */}
-          <Route
-            path="/messages"
-            element={
-              <ProtectedRoute>
-                <MessagesPage />
-              </ProtectedRoute>
-            }
-          />
-          {/* Support legacy/singular path */}
-          <Route path="/message" element={<Navigate to="/messages" replace />} />
-
-          {/* Protected Routes with Layout */}
-          <Route 
-            path="/" 
-            element={
-              <ProtectedRoute>
-                <ThreadsLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<FeedPage />} />
-            <Route path="feed" element={<FeedPage />} />
-            <Route path="search" element={ <SearchPage />} />
-            <Route path="search/all-results" element={<AllResultsPage />} />
-            <Route path="activity" element={ <ActivityPage /> } />
-            <Route path="profile/:username" element={<ProfilePage />} />
-            <Route path="profile" element={<ProfilePage />} />
-            <Route path="messages" element={<MessagesPage />} />
-            <Route path="post/:postId" element={<PostDetailPage />} />
-=======
           {/* Public routes (Login, Register) - Redirect if authenticated */}
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
->>>>>>> DuyHao
           </Route>
 
           {/* Protected Routes - Redirect to login if not authenticated */}
@@ -112,6 +70,7 @@ export default function App() {
               <Route path="activity" element={<ActivityPage />} />
               <Route path="profile/:username" element={<ProfilePage />} />
               <Route path="profile" element={<ProfilePage />} />
+              <Route path="post/:postId" element={<PostDetailPage />} />
             </Route>
           </Route>
 

@@ -8,7 +8,7 @@ import { ImageViewer } from "../ImageViewer/ImageViewer.jsx";
 export function PostCard({ post, onProfileClick, onPostClick }) {
   const username = post.username ?? post.user?.username ?? "unknown";
   const fullName = post.fullName ?? post.user?.fullName ?? "Unknown";
-  const avatarUrl = post.avatarUrl ?? post.user?.avatarUrl ?? "/default-avatar.png";
+  const avatarUrl = post.avatarUrl ?? post.user?.avatarUrl;
   const createdAt = post.createdAt ?? post.created_time ?? post.created_at ?? null;
 
   // list media từ BE
@@ -190,13 +190,7 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
           title={displayName}
         >
           <Avatar className="w-10 h-10">
-            <AvatarImage
-              src={avatarUrl || "/default-avatar.png"}
-              alt={displayName}
-              onError={(e) => {
-                e.currentTarget.src = "/default-avatar.png";
-              }}
-            />
+            <AvatarImage src={avatarUrl} alt={displayName} />
             <AvatarFallback>{displayName?.charAt(0) || "U"}</AvatarFallback>
           </Avatar>
         </button>

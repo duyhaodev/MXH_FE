@@ -15,15 +15,6 @@ export function Sidebar({ currentPage }) {
   const { profile, loading } = useSelector((state) => state.user);
   const open = useSelector(selectComposerOpen);       
   const prefill = useSelector(selectComposerPrefill); 
-  console.log(profile);
-
-  const currentUser = {
-    displayName: profile.fullName,
-    username: profile.userName,
-    avatar: profile.avatarUrl || null
-  }
-
-
 
   const menuItems = [
     { id: "feed", label: "Home", icon: Home, path: "/feed" },
@@ -35,7 +26,7 @@ export function Sidebar({ currentPage }) {
   const renderProfileSection = () => {
     if (loading || !profile) {
       return (
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 p-3">
           <Skeleton className="h-10 w-10 rounded-full" />
           <div className="space-y-2 flex-1">
             <Skeleton className="h-4 w-3/4" />
@@ -48,7 +39,7 @@ export function Sidebar({ currentPage }) {
     const currentUser = {
       displayName: profile.fullName,
       username: profile.userName,
-      avatar: profile.avatar || null
+      avatar: profile.avatarUrl || null
     }
 
     return (
@@ -60,10 +51,14 @@ export function Sidebar({ currentPage }) {
         <div className="flex items-center w-full p-3">
             <Avatar className="w-10 h-10 mr-3">
               {currentUser.avatar ? (
-                <AvatarImage src={currentUser.avatar} alt={currentUser.displayName} />
+                <AvatarImage 
+                  src={currentUser.avatar} 
+                  alt={currentUser.displayName}
+                  onError={(e) => { e.currentTarget.src = "/default-avatar.png"; }}
+                />
               ) : (
                 <AvatarFallback>
-                  {currentUser.username && currentUser.username.charAt(0).toUpperCase()}
+                  {(currentUser.username && currentUser.username.charAt(0).toUpperCase()) || "U"}
                 </AvatarFallback>
               )}
             </Avatar>
@@ -118,32 +113,6 @@ export function Sidebar({ currentPage }) {
 
       {/* User Profile Section */}
       <div className="p-4 border-t border-border">
-        <Button
-          variant="ghost"
-          className="w-full justify-start h-auto p-3"
-          onClick={() => navigate("/profile")}
-        >
-          <Avatar className="w-10 h-10 mr-3">
-            {currentUser.avatar ? (
-              <AvatarImage 
-                src={currentUser.avatar || "/default-avatar.png"}
-                alt={currentUser.displayName}
-                onError={(e) => {
-                  e.currentTarget.src = "/default-avatar.png";
-                }} 
-              />
-            ) : (
-              <AvatarFallback>
-                {(currentUser.username && currentUser.username.charAt(0)) || "U"}
-              </AvatarFallback>
-            )}
-          </Avatar>
-          <div className="flex-1 text-left">
-            <div className="font-medium">{currentUser.displayName}</div>
-            <div className="text-sm text-muted-foreground">@{currentUser.username}</div>
-          </div>
-          <Menu className="w-5 h-5" />
-        </Button>
         {renderProfileSection()}
       </div>
 
