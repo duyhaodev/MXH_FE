@@ -2,17 +2,24 @@ import { Home, Search, Heart, User, Edit, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button.js";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar.js";
-import { useSelector } from "react-redux";
-
+import { useSelector, useDispatch } from "react-redux";
+import { openComposer, closeComposer, selectComposerOpen, selectComposerPrefill } from "../../store/composerSlice";
+import { createPortal } from "react-dom";
+import { CreatePost } from "../CreatePost/CreatePost.jsx";
 
 export function Sidebar({ currentPage }) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const profile = useSelector((state) => state.user.profile);
+  const open = useSelector(selectComposerOpen);       
+  const prefill = useSelector(selectComposerPrefill); 
+  console.log(profile);
 
   const currentUser = {
     displayName: profile.fullName,
     username: profile.userName,
-    avatar: profile.avatar || null
+    avatar: profile.avatarUrl || null
   }
 
   const menuItems = [
@@ -51,7 +58,11 @@ export function Sidebar({ currentPage }) {
         </div>
 
         {/* Create Post Button */}
-        <Button className="w-full mt-6 h-12" size="lg">
+        <Button
+          className="w-full mt-6 h-12"
+          size="lg"
+          onClick={() => dispatch(openComposer({ text: "", files: [] }))} 
+        >
           <Edit className="w-5 h-5 mr-2" />
           New thread
         </Button>
@@ -66,10 +77,16 @@ export function Sidebar({ currentPage }) {
         >
           <Avatar className="w-10 h-10 mr-3">
             {currentUser.avatar ? (
-              <AvatarImage src={currentUser.avatar} alt={currentUser.displayName} />
+              <AvatarImage 
+                src={currentUser.avatar || "/default-avatar.png"}
+                alt={currentUser.displayName}
+                onError={(e) => {
+                  e.currentTarget.src = "/default-avatar.png";
+                }} 
+              />
             ) : (
               <AvatarFallback>
-                {(currentUser.username && currentUser.username.charAt(0))}
+                {(currentUser.username && currentUser.username.charAt(0)) || "U"}
               </AvatarFallback>
             )}
           </Avatar>
@@ -80,6 +97,15 @@ export function Sidebar({ currentPage }) {
           <Menu className="w-5 h-5" />
         </Button>
       </div>
+
+      {createPortal(
+        <CreatePost
+          open={open}
+          onOpenChange={(v) => v ? dispatch(openComposer(prefill)) : dispatch(closeComposer())}
+          onCreatePost={() => { }}
+        />,
+        document.body
+      )}
     </div>
   );
 }

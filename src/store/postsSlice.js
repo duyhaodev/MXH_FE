@@ -30,6 +30,20 @@ export const createPost = createAsyncThunk(
   }
 );
 
+// Lấy bài viết của user đăng nhập
+export const fetchMyPosts = createAsyncThunk(
+  "posts/fetchMyPosts",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await postApi.getMyPosts();
+      return res; // res = List<PostResponse>
+    } catch (err) {
+      return rejectWithValue(err?.message || "Load my posts failed");
+    }
+  }
+);
+
+
 const postsSlice = createSlice({
   name: "posts",
   initialState: {
@@ -40,6 +54,9 @@ const postsSlice = createSlice({
     loading: false,
     creating: false,
     error: null,
+    myPosts: [],
+    loadingMyPosts: false,
+    myPostsError: null,
   },
   reducers: {
     resetFeed(state) {
@@ -85,6 +102,19 @@ const postsSlice = createSlice({
       .addCase(createPost.rejected, (state, action) => {
         state.creating = false;
         state.error = action.payload?.message || "Đăng bài thất bại";
+      })
+      // fetchMyPosts
+      .addCase(fetchMyPosts.pending, (state) => {
+        state.loadingMyPosts = true;
+        state.myPostsError = null;
+      })
+      .addCase(fetchMyPosts.fulfilled, (state, action) => {
+        state.loadingMyPosts = false;
+        state.myPosts = action.payload || [];
+      })
+      .addCase(fetchMyPosts.rejected, (state, action) => {
+        state.loadingMyPosts = false;
+        state.myPostsError = action.payload || "Load my posts failed";
       });
   },
 });
@@ -99,3 +129,7 @@ export const selectPostsCreating = (state) => state.posts.creating;
 export const selectPostsHasMore = (state) => state.posts.hasMore;
 export const selectPostsPage = (state) => state.posts.page;
 export const selectPostsError = (state) => state.posts.error;
+export const selectMyPosts = (state) => state.posts.myPosts;
+export const selectMyPostsLoading = (state) => state.posts.loadingMyPosts;
+export const selectMyPostsError = (state) => state.posts.myPostsError;
+

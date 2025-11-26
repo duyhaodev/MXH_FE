@@ -14,6 +14,7 @@ import { verifyToken } from "./store/userSlice.js";
 import { useDispatch, useSelector } from "react-redux";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx"
 import { Spinner } from "@/components/ui/spinner"
+import { PostDetailPage } from "./features/PostDetailPage/PostDetailPage.jsx";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -74,6 +75,7 @@ export default function App() {
             <Route path="profile/:username" element={<ProfilePage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="messages" element={<MessagesPage />} />
+            <Route path="post/:postId" element={<PostDetailPage />} />
           </Route>
 
           {/* Catch all - redirect to feed */}
