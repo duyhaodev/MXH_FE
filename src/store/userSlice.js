@@ -12,8 +12,7 @@ export const login = createAsyncThunk(
       }
       const token = res.result.token;
       localStorage.setItem("token", token);
-      // lấy profile ngay sau khi có token
-      dispatch(fetchMyInfo());
+      dispatch(fetchMyInfo()); // Fetch user info after successful login
       return { token };
     } catch (e) {
       return rejectWithValue(e.response?.data || e.message || "LOGIN_ERROR");

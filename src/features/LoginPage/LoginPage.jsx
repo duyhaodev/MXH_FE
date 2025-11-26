@@ -4,7 +4,6 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
-import authApi from "../../api/authApi";
 import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { login, fetchMyInfo } from "../../store/userSlice";
@@ -25,10 +24,8 @@ export function LoginPage() {
     try {
       setIsLoading(true);
       // dispatch login thunk
-      const result = await dispatch(login(values)).unwrap();
-      // login thành công -> fetchMyInfo đã được dispatch trong thunk login, 
-      // nhưng gọi thêm lần nữa an toàn:
-      dispatch(fetchMyInfo());
+      await dispatch(login(values)).unwrap();
+      // login thành công -> fetchMyInfo is now dispatched inside the login thunk.
       toast.success("Đăng nhập thành công!");
       navigate("/feed");
     } catch (error) {
