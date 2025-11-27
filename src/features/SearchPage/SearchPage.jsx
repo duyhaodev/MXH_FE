@@ -53,7 +53,11 @@ export function SearchPage({ onProfileClick }) {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="border-b border-border p-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-        <h2 className="text-xl mb-3">Search</h2>
+        <h2 className="text-xl font-semibold">Search</h2>
+      </div>
+
+      <div>
+        <div className="pt-5"></div>
         <div className="flex items-center gap-2 bg-muted p-2 rounded">
           <Search className="w-4 h-4 text-muted-foreground" />
           <Input
@@ -64,9 +68,6 @@ export function SearchPage({ onProfileClick }) {
             className="flex-1 border-none bg-transparent"
           />
         </div>
-      </div>
-
-      <div>
         {!searchQuery.trim() ? (
           <EmptyState
             icon={Search}
