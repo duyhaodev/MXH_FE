@@ -10,9 +10,15 @@ const authApi = {
       const url = "auth/introspect"
       return axiosClient.post(url, {token})
     },
+    
     register (data) {
         const url = "users";
         return axiosClient.post(url, data)
+    },
+
+    logout (token) {
+        const url = "auth/logout";
+        return axiosClient.post(url, {token})
     }
 }
 

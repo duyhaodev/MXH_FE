@@ -7,6 +7,13 @@ import { openComposer, closeComposer, selectComposerOpen, selectComposerPrefill 
 import { createPortal } from "react-dom";
 import { CreatePost } from "../CreatePost/CreatePost.jsx";
 import { Skeleton } from "../ui/skeleton.js";
+import { logoutUser } from "../../store/userSlice";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 export function Sidebar({ currentPage }) {
   const navigate = useNavigate();
@@ -22,6 +29,16 @@ export function Sidebar({ currentPage }) {
     { id: "activity", label: "Activity", icon: Heart, path: "/activity" },
     { id: "profile", label: "Profile", icon: User, path: "/profile" },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      navigate("/login");
+    }
+  };
 
   const renderProfileSection = () => {
     if (loading || !profile) {
@@ -43,32 +60,53 @@ export function Sidebar({ currentPage }) {
     }
 
     return (
-      <Button
-        variant="ghost"
-        className="w-full justify-start h-auto p-0" // p-0 to let inner content define padding
-        onClick={() => navigate("/profile")}
-      >
-        <div className="flex items-center w-full p-3">
-            <Avatar className="w-10 h-10 mr-3">
-              {currentUser.avatar ? (
-                <AvatarImage 
-                  src={currentUser.avatar} 
-                  alt={currentUser.displayName}
-                  onError={(e) => { e.currentTarget.src = "/default-avatar.png"; }}
-                />
-              ) : (
-                <AvatarFallback>
-                  {(currentUser.username && currentUser.username.charAt(0).toUpperCase()) || "U"}
-                </AvatarFallback>
-              )}
-            </Avatar>
-            <div className="flex-1 text-left">
-              <div className="font-medium">{currentUser.displayName}</div>
-              <div className="text-sm text-muted-foreground">@{currentUser.username}</div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="w-full justify-start h-auto p-0"
+          >
+            <div className="flex items-center w-full p-3">
+              <Avatar className="w-10 h-10 mr-3">
+                {currentUser.avatar ? (
+                  <AvatarImage 
+                    src={currentUser.avatar} 
+                    alt={currentUser.displayName}
+                    onError={(e) => { e.currentTarget.src = "/default-avatar.png"; }}
+                  />
+                ) : (
+                  <AvatarFallback>
+                    {(currentUser.username && currentUser.username.charAt(0).toUpperCase()) || "U"}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div className="flex-1 text-left">
+                <div className="font-medium">{currentUser.displayName}</div>
+                <div className="text-sm text-muted-foreground">@{currentUser.username}</div>
+              </div>
+              <Menu className="w-5 h-5" />
             </div>
-            <Menu className="w-5 h-5" />
-        </div>
-      </Button>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent 
+          align="end" 
+          className="w-56 bg-[#1e1e1e] border-[#2a2a2a] text-[15px] p-1"
+          sideOffset={8}
+        >
+          <DropdownMenuItem 
+            onClick={() => navigate("/profile")} 
+            className="cursor-pointer text-white hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] rounded-md px-3 py-2"
+          >
+            Xem trang cá nhân
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={handleLogout}
+            className="cursor-pointer text-red-500 hover:bg-[#2a2a2a] hover:text-red-500 focus:bg-[#2a2a2a] focus:text-red-500 rounded-md px-3 py-2"
+          >
+            Đăng xuất
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   }
 

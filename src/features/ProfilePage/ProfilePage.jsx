@@ -19,6 +19,7 @@ import {
 import postApi from "../../api/postApi";
 import { EditProfileDialog } from "./EditProfileDialog.jsx";
 
+
 export function ProfilePage() {
   const { username } = useParams();
   const navigate = useNavigate();

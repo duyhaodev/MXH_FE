@@ -57,6 +57,24 @@ export const fetchMyInfo = createAsyncThunk(
   }
 );
 
+export const logoutUser = createAsyncThunk(
+  "user/logout",
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const token = getState().user.token || localStorage.getItem("token");
+      if (token) {
+        await authApi.logout(token);
+      }
+      localStorage.removeItem("token");
+      return null;
+    } catch (e) {
+      // Vẫn xóa token local dù API lỗi
+      localStorage.removeItem("token");
+      return rejectWithValue(e.response?.data || e.message || "LOGOUT_ERROR");
+    }
+  }
+)
+
 const userSlice = createSlice ({
     name: "user",
     initialState: {
@@ -75,6 +93,7 @@ const userSlice = createSlice ({
             state.token = null;
             state.profile = null;
             state.isAuthenticated = false;
+            state.error = null;
             localStorage.removeItem("token");
         }
     },
@@ -124,6 +143,26 @@ const userSlice = createSlice ({
         })
         .addCase(fetchMyInfo.rejected, (state, action) => {
             state.loading = false;
+            state.error = action.payload || action.error?.message;
+        })
+
+        // logout
+        .addCase(logoutUser.pending, (state) => {
+            state.loading = true;
+        })
+        .addCase(logoutUser.fulfilled, (state) => {
+            state.loading = false;
+            state.token = null;
+            state.profile = null;
+            state.isAuthenticated = false;
+            state.error = null;
+        })
+        .addCase(logoutUser.rejected, (state, action) => {
+            // Vẫn logout dù API lỗi
+            state.loading = false;
+            state.token = null;
+            state.profile = null;
+            state.isAuthenticated = false;
             state.error = action.payload || action.error?.message;
         });
     }
