@@ -45,7 +45,7 @@ export function PostDetailPage() {
 
   const handleProfileClick = (username) => {
     if (!username) return;
-    navigate(`/profile/${username}`);
+    navigate(`/profile/@${username}`);
   };
 
   if (loading) {

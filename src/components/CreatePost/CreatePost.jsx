@@ -56,7 +56,7 @@ export function CreatePost({ open, onOpenChange }) {
       const isVideo = type.startsWith("video/");
 
       if (!isImage && !isVideo) {
-        toast.error(`File "${file.name}" không phải hình hoặc video, bỏ qua.`);
+        toast.error(`File "${file.name}" không phải hình hoặc video. Vui lòng chọn lại.`);
         continue;
       }
 

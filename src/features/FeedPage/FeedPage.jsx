@@ -59,7 +59,7 @@ export function FeedPage() {
   };
 
   const handleProfileClick = (username) => {
-    navigate(`/profile/${username}`);
+    navigate(`/profile/@${username}`);
   };
 
   // ----- MEDIA: CHỌN & PREVIEW NHIỀU FILE -----
@@ -123,7 +123,6 @@ export function FeedPage() {
         if (m.preview) URL.revokeObjectURL(m.preview);
       });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ----- DRAG TO SCROLL PREVIEW (giống CreatePost) -----

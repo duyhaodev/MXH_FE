@@ -14,16 +14,23 @@ import {
   fetchMyPosts,
   selectMyPosts,
   selectMyPostsLoading,
+  fetchUserPosts,
+  selectUserPosts,
+  selectUserPostsLoading,
 } from "../../store/postsSlice";
 
 import postApi from "../../api/postApi";
 import { EditProfileDialog } from "./EditProfileDialog.jsx";
 
-
 export function ProfilePage() {
-  const { username } = useParams();
+  const { username: rawUsername } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const cleanUsername =
+    rawUsername && rawUsername.startsWith("@")
+      ? rawUsername.substring(1)
+      : rawUsername;
 
   // Lấy thông tin user đã đăng nhập
   const profile = useSelector((s) => s.user.profile) ?? {};
@@ -32,8 +39,8 @@ export function ProfilePage() {
   const loadingMyPosts = useSelector(selectMyPostsLoading);
 
   // State lưu bài viết của NGƯỜI KHÁC
-  const [otherPosts, setOtherPosts] = useState([]);
-  const [loadingOther, setLoadingOther] = useState(false);
+  const otherPosts = useSelector(selectUserPosts);
+  const loadingOther = useSelector(selectUserPostsLoading);
 
   // State lưu thông tin profile của NGƯỜI KHÁC
   const [otherProfile, setOtherProfile] = useState(null);
@@ -46,9 +53,7 @@ export function ProfilePage() {
 
   // mở dialog Edit profile
   const [editOpen, setEditOpen] = useState(false);
-
-  // Nếu profile của mình
-  const isOwnProfile = !username || username === profile.userName;
+  const isOwnProfile = !cleanUsername || cleanUsername === profile.userName;
   const user = isOwnProfile
     ? {
         id: profile.id,
@@ -75,33 +80,26 @@ export function ProfilePage() {
 
   // LẤY BÀI VIẾT + PROFILE
   useEffect(() => {
-    // Nếu là mình
     if (isOwnProfile) {
       dispatch(fetchMyPosts());
     }
-    // Trường hợp đang xem profile NGƯỜI KHÁC
-    else if (username) {
+    else if (cleanUsername) {
       (async () => {
         try {
-          setLoadingOther(true);
-
-          const posts = await postApi.getUserPosts(username);
-          setOtherPosts(Array.isArray(posts) ? posts : []);
-
-          const userRes = await postApi.getUserByUsername(username);
+          // dùng cleanUsername (không có @) để gọi BE
+          dispatch(fetchUserPosts({ username: cleanUsername }));
+          const userRes = await postApi.getUserByUsername(cleanUsername);
           setOtherProfile(userRes.result);
         } catch (err) {
           console.error("Error loading profile:", err);
-        } finally {
-          setLoadingOther(false);
         }
       })();
     }
-  }, [dispatch, isOwnProfile, username]);
+  }, [dispatch, isOwnProfile, cleanUsername]);
 
   // Hàm khi click vào avatar/username trong PostCard
   const handleProfileClick = (username) => {
-    navigate(`/profile/${username}`);
+    navigate(`/profile/@${username}`);
   };
 
   // Back lại feed
@@ -192,6 +190,7 @@ export function ProfilePage() {
             </Avatar>
           </button>
         </div>
+
         {/* Stats followers / following */}
         <div className="flex items-center gap-6 mb-6">
           <button className="hover:underline">

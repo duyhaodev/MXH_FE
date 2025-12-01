@@ -43,6 +43,21 @@ export const fetchMyPosts = createAsyncThunk(
   }
 );
 
+// Lấy bài viết theo username (profile người khác)
+export const fetchUserPosts = createAsyncThunk(
+  "posts/fetchUserPosts",
+  async ({ username }, { rejectWithValue }) => {
+    try {
+      const res = await postApi.getUserPosts(username);
+      const data = Array.isArray(res) ? res : [];
+      return { username, data };
+    } catch (err) {
+      return rejectWithValue(err?.message || "Load user posts failed");
+    }
+  }
+);
+
+
 
 const postsSlice = createSlice({
   name: "posts",
@@ -54,9 +69,14 @@ const postsSlice = createSlice({
     loading: false,
     creating: false,
     error: null,
+
     myPosts: [],
     loadingMyPosts: false,
     myPostsError: null,
+
+    userPosts: [],
+    loadingUserPosts: false,
+    userPostsError: null,
   },
   reducers: {
     resetFeed(state) {
@@ -115,6 +135,24 @@ const postsSlice = createSlice({
       .addCase(fetchMyPosts.rejected, (state, action) => {
         state.loadingMyPosts = false;
         state.myPostsError = action.payload || "Load my posts failed";
+      })
+      // fetchUserPosts
+      .addCase(fetchUserPosts.pending, (state) => {
+        state.loadingUserPosts = true;
+        state.userPostsError = null;
+      })
+      .addCase(fetchUserPosts.fulfilled, (state, action) => {
+        state.loadingUserPosts = false;
+        const { data } = action.payload;
+        // có thể sort theo createdAt nếu muốn giống feed
+        const sorted = data.slice().sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        state.userPosts = sorted;
+      })
+      .addCase(fetchUserPosts.rejected, (state, action) => {
+        state.loadingUserPosts = false;
+        state.userPostsError = action.payload || "Load user posts failed";
       });
   },
 });
@@ -132,4 +170,8 @@ export const selectPostsError = (state) => state.posts.error;
 export const selectMyPosts = (state) => state.posts.myPosts;
 export const selectMyPostsLoading = (state) => state.posts.loadingMyPosts;
 export const selectMyPostsError = (state) => state.posts.myPostsError;
+export const selectUserPosts = (state) => state.posts.userPosts;
+export const selectUserPostsLoading = (state) => state.posts.loadingUserPosts;
+export const selectUserPostsError = (state) => state.posts.userPostsError;
+
 
