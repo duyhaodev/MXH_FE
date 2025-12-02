@@ -58,14 +58,14 @@ export function SearchPage({ onProfileClick }) {
 
       <div>
         <div className="pt-5"></div>
-        <div className="flex items-center gap-2 bg-muted p-2 rounded">
-          <Search className="w-4 h-4 text-muted-foreground" />
+        <div className="flex items-center">
+          <Search className="absolute w-4 h-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search for users or posts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 border-none bg-transparent"
+            className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#555]"
           />
         </div>
         {!searchQuery.trim() ? (

@@ -38,7 +38,7 @@ export function MessagesPage({ onBack }) {
                 <ChevronLeft className="w-5 h-5" />
               </button>
             )}
-            <h2 className="text-xl">dh25.09</h2>
+            <h2 className="text-xl">Message</h2>
           </div>
           {/* Search */}
           <div className="relative">
