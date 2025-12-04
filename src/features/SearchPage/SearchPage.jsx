@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Verified } from "lucide-react";
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
@@ -7,7 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/ta
 import { PostCard } from "../../components/PostCard/PostCard.jsx";
 import { searchApi } from "../../api/searchApi";
 
-export function SearchPage({ onProfileClick }) {
+export function SearchPage() {
+  const navigate = useNavigate();
+
+  const onProfileClick = (username) => {
+    navigate(`/profile/${username}`);
+  };
+
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState([]);
   const [posts, setPosts] = useState([]);
@@ -29,8 +36,15 @@ export function SearchPage({ onProfileClick }) {
 
         const data = res.data || res; // axiosClient có thể trả .data hoặc cả response
         if (data.code === 200 && data.result) {
+          const rawPosts = data.result.posts || [];
+          const normalizedPosts = rawPosts.map(p => ({
+            ...p,
+            mediaList: typeof p.mediaList === "string" 
+              ? JSON.parse(p.mediaList)
+              : (p.mediaList || [])
+          }));
+          setPosts(normalizedPosts);
           setUsers(data.result.users || []);
-          setPosts(data.result.posts || []);
         } else {
           setUsers([]);
           setPosts([]);
@@ -53,7 +67,11 @@ export function SearchPage({ onProfileClick }) {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="border-b border-border p-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-        <h2 className="text-xl mb-3">Search</h2>
+        <h2 className="text-xl font-semibold">Search</h2>
+      </div>
+
+      <div>
+        <div className="pt-5"></div>
         <div className="flex items-center gap-2 bg-muted p-2 rounded">
           <Search className="w-4 h-4 text-muted-foreground" />
           <Input
@@ -64,9 +82,6 @@ export function SearchPage({ onProfileClick }) {
             className="flex-1 border-none bg-transparent"
           />
         </div>
-      </div>
-
-      <div>
         {!searchQuery.trim() ? (
           <EmptyState
             icon={Search}

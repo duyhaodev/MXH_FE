@@ -1,5 +1,5 @@
 // src/features/ProfilePage/ProfilePage.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -17,7 +17,9 @@ import {
 } from "../../store/postsSlice";
 
 import postApi from "../../api/postApi";
+import followApi from "../../api/followApi";
 import { EditProfileDialog } from "./EditProfileDialog.jsx";
+
 
 export function ProfilePage() {
   const { username } = useParams();
@@ -37,7 +39,7 @@ export function ProfilePage() {
   // State lưu thông tin profile của NGƯỜI KHÁC
   const [otherProfile, setOtherProfile] = useState(null);
 
-  // State tạm cho nút Follow (UI demo, chưa nối BE)
+  // Cập nhật State cho nút Follow/Following
   const [isFollowing, setIsFollowing] = useState(false);
 
   // mở avatar bằng ImageViewer
@@ -88,7 +90,17 @@ export function ProfilePage() {
           setOtherPosts(Array.isArray(posts) ? posts : []);
 
           const userRes = await postApi.getUserByUsername(username);
+          console.log("API trả về user:", userRes.result);
+          const followingUser = userRes.result;
           setOtherProfile(userRes.result);
+          // KIỂM TRA TRẠNG THÁI FOLLOW (chỉ khi có id của người dùng khác)
+          if (followingUser?.id) {
+            const followStatusRes = await followApi.checkFollowing(
+              followingUser.id
+            );
+            // BE trả về Object { isFollowingValue: boolean }
+            setIsFollowing(followStatusRes.isFollowingValue);
+          }
         } catch (err) {
           console.error("Error loading profile:", err);
         } finally {
@@ -117,9 +129,49 @@ export function ProfilePage() {
   };
 
   // Toggle Follow/Following
-  const handleFollow = () => {
-    setIsFollowing((prev) => !prev);
-  };
+  const handleFollow = useCallback(async () => {
+    if (!user?.id) return;
+
+    // Tối ưu UI: cập nhật trạng thái ngay lập tức
+    const newFollowingStatus = !isFollowing;
+    setIsFollowing(newFollowingStatus);
+
+    // Tối ưu UI: cập nhật số lượng follower
+    // Tăng/giảm số follower trong state tạm otherProfile
+    setOtherProfile((prev) => {
+        if (!prev) return null;
+        const count = prev.followersCount ?? 0;
+        return {
+            ...prev,
+            followersCount: newFollowingStatus ? count + 1 : count - 1
+        };
+    });
+
+    try {
+      // Gọi API toggle
+      const res = await followApi.toggleFollow(user.id);
+      
+      // Nếu API thành công, trạng thái UI đã đúng.
+      // Nếu API thất bại, đảo ngược lại trạng thái UI/số lượng
+      if (!res.success) {
+        throw new Error(res.message || "Failed to toggle follow");
+      }
+      
+    } catch (error) {
+      console.error("Error toggling follow:", error);
+      // Đảo ngược lại trạng thái (rollback)
+      setIsFollowing(!newFollowingStatus); 
+      setOtherProfile((prev) => {
+        if (!prev) return null;
+        const count = prev.followersCount ?? 0;
+        return {
+            ...prev,
+            followersCount: !newFollowingStatus ? count + 1 : count - 1
+        };
+      });
+      // TODO: Thêm toast/thông báo lỗi cho người dùng
+    }
+  }, [isFollowing, user?.id]);
 
   // Chọn bài viết để render
   const postsToRender = isOwnProfile ? myPosts : otherPosts;
@@ -136,7 +188,7 @@ export function ProfilePage() {
     if (!id) return;
     navigate(`/post/${id}`);
   };
-
+  console.log("Render ProfilePage for user:", user);
   return (
     <div className="max-w-2xl mx-auto">
       {/* Header cố định trên cùng */}
