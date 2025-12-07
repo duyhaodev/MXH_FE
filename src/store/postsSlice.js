@@ -57,6 +57,19 @@ export const fetchUserPosts = createAsyncThunk(
   }
 );
 
+// Lấy chi tiết bài viết theo ID
+export const fetchPostById = createAsyncThunk(
+  "posts/fetchPostById",
+  async (postId, { rejectWithValue }) => {
+    try {
+      const res = await postApi.getPostById(postId);
+      return res; // PostResponse
+    } catch (err) {
+      return rejectWithValue(err?.message || "Load post detail failed");
+    }
+  }
+);
+
 
 
 const postsSlice = createSlice({
@@ -77,6 +90,10 @@ const postsSlice = createSlice({
     userPosts: [],
     loadingUserPosts: false,
     userPostsError: null,
+
+    postDetail: null,
+    loadingPostDetail: false,
+    postDetailError: null,
   },
   reducers: {
     resetFeed(state) {
@@ -108,8 +125,9 @@ const postsSlice = createSlice({
       })
       .addCase(fetchFeed.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || "Load feed thất bại";
+        state.error = action.payload || "Load feed thất bại";
       })
+
       // createPost
       .addCase(createPost.pending, (state) => {
         state.creating = true;
@@ -123,6 +141,7 @@ const postsSlice = createSlice({
         state.creating = false;
         state.error = action.payload?.message || "Đăng bài thất bại";
       })
+
       // fetchMyPosts
       .addCase(fetchMyPosts.pending, (state) => {
         state.loadingMyPosts = true;
@@ -136,6 +155,7 @@ const postsSlice = createSlice({
         state.loadingMyPosts = false;
         state.myPostsError = action.payload || "Load my posts failed";
       })
+
       // fetchUserPosts
       .addCase(fetchUserPosts.pending, (state) => {
         state.loadingUserPosts = true;
@@ -153,6 +173,22 @@ const postsSlice = createSlice({
       .addCase(fetchUserPosts.rejected, (state, action) => {
         state.loadingUserPosts = false;
         state.userPostsError = action.payload || "Load user posts failed";
+      })
+
+      // fetchPostById
+      .addCase(fetchPostById.pending, (state) => {
+        state.loadingPostDetail = true;
+        state.postDetailError = null;
+      })
+      .addCase(fetchPostById.fulfilled, (state, action) => {
+        state.loadingPostDetail = false;
+        state.postDetail = action.payload || null;
+      })
+      .addCase(fetchPostById.rejected, (state, action) => {
+        state.loadingPostDetail = false;
+        state.postDetail = null;
+        // vì rejectWithValue(err.message) => payload là string
+        state.postDetailError = action.payload || "Load post detail failed";
       });
   },
 });
@@ -173,5 +209,9 @@ export const selectMyPostsError = (state) => state.posts.myPostsError;
 export const selectUserPosts = (state) => state.posts.userPosts;
 export const selectUserPostsLoading = (state) => state.posts.loadingUserPosts;
 export const selectUserPostsError = (state) => state.posts.userPostsError;
+export const selectPostDetail = (state) => state.posts.postDetail;
+export const selectPostDetailLoading = (state) => state.posts.loadingPostDetail;
+export const selectPostDetailError = (state) => state.posts.postDetailError;
+
 
 

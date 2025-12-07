@@ -27,7 +27,6 @@ export function FeedPage() {
   const displayName = profile.fullName ?? "User";
   const avatarUrl = profile.avatarUrl; // Let fallback handle missing URL
 
-
   const posts = useSelector(selectPosts);
   const hasMore = useSelector(selectPostsHasMore);
   const loading = useSelector(selectPostsLoading);
@@ -44,6 +43,9 @@ export function FeedPage() {
   // Emoji picker
   const [showEmoji, setShowEmoji] = useState(false);
 
+  const loadMoreRef = useRef(null);
+  const loadDelayRef = useRef(null); // delay trước khi load thêm
+
   // FEED: LẤY DANH SÁCH BÀI VIẾT
   useEffect(() => {
     dispatch(fetchFeed({ page: 0, size: 20 }))
@@ -57,6 +59,46 @@ export function FeedPage() {
       .unwrap()
       .catch(() => toast.error("Không tải được feed"));
   };
+
+  // Auto load
+  useEffect(() => {
+    if (!hasMore) return;
+    if (loading) return;
+
+    const el = loadMoreRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry.isIntersecting) return;
+        if (loading || !hasMore) return;
+
+        if (loadDelayRef.current) return;
+
+        loadDelayRef.current = setTimeout(() => {
+          dispatch(fetchFeed({ page, size: 20 }))
+            .unwrap()
+            .catch(() => toast.error("Không tải được feed"));
+          loadDelayRef.current = null;
+        }, 300);
+      },
+      {
+        root: null,
+        threshold: 0.1,
+      }
+    );
+
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      if (loadDelayRef.current) {
+        clearTimeout(loadDelayRef.current);
+        loadDelayRef.current = null;
+      }
+    };
+  }, [hasMore, loading, page, dispatch]);
 
   const handleProfileClick = (username) => {
     navigate(`/profile/@${username}`);
@@ -225,7 +267,7 @@ export function FeedPage() {
         <div className="flex gap-3">
           <Avatar className="w-10 h-10 flex-shrink-0">
             <AvatarImage src={avatarUrl} alt={displayName} />
-            <AvatarFallback>{displayName?.charAt(0) || 'U'}</AvatarFallback>
+            <AvatarFallback>{displayName?.charAt(0) || "U"}</AvatarFallback>
           </Avatar>
 
           <div className="flex-1 relative">
@@ -356,7 +398,9 @@ export function FeedPage() {
               </div>
 
               <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground">{newPost.length}/500</span>
+                <span className="text-sm text-muted-foreground">
+                  {newPost.length}/500
+                </span>
                 <Button
                   type="button"
                   onClick={handleCreatePost}
@@ -405,16 +449,15 @@ export function FeedPage() {
         })}
       </div>
 
-      {/* Load More */}
+      {/* Load More (infinite scroll) */}
       <div className="p-4 text-center">
-        <Button
-          variant="ghost"
-          className="text-muted-foreground"
-          onClick={handleLoadMore}
-          disabled={!hasMore || loading}
-        >
-          {loading ? "Đang tải..." : hasMore ? "Load more posts" : "Hết bài"}
-        </Button>
+        {loading && hasMore && (
+          <span className="text-muted-foreground text-sm">Đang tải...</span>
+        )}
+        {hasMore && <div ref={loadMoreRef} className="h-1" />}
+        {!hasMore && !loading && (
+          <span className="text-muted-foreground text-sm">Hết bài</span>
+        )}
       </div>
     </div>
   );

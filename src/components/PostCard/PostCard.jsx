@@ -27,9 +27,9 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
     if (!createdAt) return "now";
     const diff = (Date.now() - new Date(createdAt)) / 60000; // phút
     if (diff < 1) return "now";
-    if (diff < 60) return `${Math.floor(diff)}m`;
-    if (diff < 1440) return `${Math.floor(diff / 60)}h`;
-    return `${Math.floor(diff / 1440)}d`;
+    if (diff < 60) return `${Math.floor(diff)}m ago`;
+    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
+    return `${Math.floor(diff / 1440)}d ago`;
   }, [createdAt]);
 
   // local UI state (demo)
@@ -356,6 +356,30 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
 
           {/* Actions: comment / repost / like / share */}
           <div className="flex items-center justify-between max-w-md">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 h-auto group"
+              onClick={(e) => {
+                e.stopPropagation(); 
+                handleLike();
+              }}
+              aria-label="Like"
+            >
+              <Heart
+                className={`w-5 h-5 ${
+                  isLiked ? "text-red-500 fill-red-500" : "group-hover:text-red-500"
+                }`}
+              />
+              <span
+                className={`ml-1 text-sm ${
+                  isLiked ? "text-red-500" : "text-muted-foreground group-hover:text-red-500"
+                }`}
+              >
+                {formatNumber(likes)}
+              </span>
+            </Button>
+
             {/* Comment: mở chi tiết bài viết */}
             <Button
               variant="ghost"
@@ -396,30 +420,6 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
                 }`}
               >
                 {formatNumber(reposts)}
-              </span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 h-auto group"
-              onClick={(e) => {
-                e.stopPropagation(); 
-                handleLike();
-              }}
-              aria-label="Like"
-            >
-              <Heart
-                className={`w-5 h-5 ${
-                  isLiked ? "text-red-500 fill-red-500" : "group-hover:text-red-500"
-                }`}
-              />
-              <span
-                className={`ml-1 text-sm ${
-                  isLiked ? "text-red-500" : "text-muted-foreground group-hover:text-red-500"
-                }`}
-              >
-                {formatNumber(likes)}
               </span>
             </Button>
 
