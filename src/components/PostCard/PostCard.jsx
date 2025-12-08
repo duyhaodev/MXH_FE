@@ -4,6 +4,7 @@ import { Heart, MessageCircle, Repeat2, Share, MoreHorizontal } from "lucide-rea
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { ImageViewer } from "../ImageViewer/ImageViewer.jsx";
+import likeApi from "@/api/likeApi";
 
 export function PostCard({ post, onProfileClick, onPostClick }) {
   const username = post.username ?? post.user?.username ?? "unknown";
@@ -33,15 +34,55 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
   }, [createdAt]);
 
   // local UI state (demo)
-  const [isLiked, setIsLiked] = useState(false);
-  const [isReposted, setIsReposted] = useState(false);
+  const [isLiked, setIsLiked] = useState(
+    post.liked ?? post.likedByCurrentUser ?? post.isLikedByCurrentUser ?? false
+  );
   const [likes, setLikes] = useState(post.likeCount ?? 0);
+  const [liking, setLiking] = useState(false);
+  const [isReposted, setIsReposted] = useState(false);
   const [reposts, setReposts] = useState(post.repostCount ?? 0);
 
-  const handleLike = () => {
-    const next = !isLiked;
-    setIsLiked(next);
-    setLikes((v) => (next ? v + 1 : Math.max(0, v - 1)));
+  useEffect(() => {
+    setIsLiked(
+      post.liked ?? post.likedByCurrentUser ?? post.isLikedByCurrentUser ?? false
+    );
+    setLikes(post.likeCount ?? 0);
+  }, [post.liked, post.likedByCurrentUser, post.isLikedByCurrentUser, post.likeCount]);
+
+  const handleLike = async () => {
+    if (liking) return;
+
+    const id = post.id ?? post.postId;
+    if (!id) return;
+
+    // optimistic update
+    const prevLiked = isLiked;
+    const prevLikes = likes;
+    const nextLiked = !isLiked;
+    const nextLikes = nextLiked
+      ? prevLikes + 1
+      : Math.max(0, prevLikes - 1);
+
+    setIsLiked(nextLiked);
+    setLikes(nextLikes);
+    setLiking(true);
+
+    try {
+      const res = await likeApi.togglePost(id);
+
+      if (typeof res?.liked === "boolean") {
+        setIsLiked(res.liked);
+      }
+      if (typeof res?.likeCount === "number") {
+        setLikes(res.likeCount);
+      }
+    } catch (err) {
+      console.error("Toggle like failed:", err);
+      setIsLiked(prevLiked);
+      setLikes(prevLikes);
+    } finally {
+      setLiking(false);
+    }
   };
 
   const handleRepost = () => {
@@ -361,10 +402,11 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
               size="sm"
               className="p-2 h-auto group"
               onClick={(e) => {
-                e.stopPropagation(); 
+                e.stopPropagation();
                 handleLike();
               }}
               aria-label="Like"
+              disabled={liking}
             >
               <Heart
                 className={`w-5 h-5 ${
