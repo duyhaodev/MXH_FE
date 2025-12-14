@@ -1,4 +1,3 @@
-// src/api/followApi.js
 import axios from "./axiosClient";
 
 const followApi = {
