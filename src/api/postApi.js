@@ -7,6 +7,10 @@ const postApi = {
       transformRequest: (v) => v
     });
   },
+  // Xóa bài viết
+  deletePost(postId) {
+    return axiosClient.delete(`/posts/${postId}`);
+  },
   getFeed({ page = 0, size = 20 } = {}) {
     return axiosClient.get(`/feed?page=${page}&size=${size}`);
   },
@@ -25,6 +29,21 @@ const postApi = {
   // lấy chi tiết bài viết theo id
   getPostById(postId) {
   return axiosClient.get(`/posts/${postId}`);
+  },
+  // Lấy danh sách reposts của mình
+  getMyReposts() {
+    return axiosClient.get("/profile/reposts");
+  },
+  // Lấy danh sách reposts của user khác
+  getUserReposts(username) {
+    return axiosClient.get(`/profile/${username}/reposts`);
+  },
+  // Đăng lại bài viết
+  repost(postId) {
+    return axiosClient.post(`/posts/${postId}/repost`);
+  },
+  unrepost(postId) {
+  return axiosClient.delete(`/posts/${postId}/repost`);
   },
 };
 

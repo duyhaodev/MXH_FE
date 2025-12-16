@@ -78,7 +78,7 @@ export function PostDetailPage() {
       <PostCard post={post} onProfileClick={handleProfileClick} />
 
       {/* Comment */}
-      <PostComments postId={postId} onProfileClick={handleProfileClick} onCommentCreated={() => dispatch(fetchPostById(post.id))}/>
+      <PostComments postId={post.repostOfId ?? post.id} onProfileClick={handleProfileClick} onCommentCreated={() => dispatch(fetchPostById(post.id))}/>
     </div>
   );
 }

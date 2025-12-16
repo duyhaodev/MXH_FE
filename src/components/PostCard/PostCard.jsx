@@ -1,29 +1,57 @@
-// src/components/PostCard/PostCard.jsx
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Heart, MessageCircle, Repeat2, Share, MoreHorizontal } from "lucide-react";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { ImageViewer } from "../ImageViewer/ImageViewer.jsx";
 import likeApi from "@/api/likeApi";
+import { useSelector, useDispatch } from "react-redux";
+import { repostPost, unrepostPost, deletePost } from "@/store/postsSlice";
+import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+
 
 export function PostCard({ post, onProfileClick, onPostClick }) {
-  const username = post.username ?? post.user?.username ?? "unknown";
-  const fullName = post.fullName ?? post.user?.fullName ?? "Unknown";
-  const avatarUrl = post.avatarUrl ?? post.user?.avatarUrl;
+
+  const dispatch = useDispatch();
+  const currentUserId = useSelector((s) => s.user?.profile?.id);
+  // ====== THÔNG TIN CƠ BẢN (người repost) ======
+  const baseUsername = post.username ?? post.user?.username ?? "unknown";
+  const baseFullName = post.fullName ?? post.user?.fullName ?? "Unknown";
+  const baseAvatarUrl = post.avatarUrl ?? post.user?.avatarUrl;
   const createdAt = post.createdAt ?? post.created_time ?? post.created_at ?? null;
 
-  // list media từ BE
+  // ====== REPOST ======
+  const isRepost = !!post.repostOfId;
+
+  // thông tin chính chủ bài gốc
+  // ID bài viết gốc 
+  const originalPostId = post.repostOfId ?? post.id;
+  const originalUsername = post.originalUsername;
+  const originalFullName = post.originalFullName;
+  const originalAvatarUrl = post.originalAvatarUrl;
+
+  // Nếu là repost, hiển thị thông tin chủ bài gốc
+  const displayName = isRepost && originalFullName ? originalFullName : baseFullName || "Unknown";
+  const handle = isRepost && originalUsername ? originalUsername : baseUsername || "unknown";
+  const avatarUrl = isRepost && originalAvatarUrl ? originalAvatarUrl : baseAvatarUrl;
+
+  // Tên người repost
+  const reposterName = baseFullName || baseUsername || "Unknown";
+
+  // list media
   const mediaList = Array.isArray(post.mediaList) ? post.mediaList : [];
   const mediaCount = mediaList.length;
-
-  const displayName = fullName || "Unknown";
-  const handle = username || "unknown";
 
   // click mở fullscreen
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
 
-  // relative time inline (ngắn gọn)
+  // relative time inline 
   const relative = useMemo(() => {
     if (!createdAt) return "now";
     const diff = (Date.now() - new Date(createdAt)) / 60000; // phút
@@ -33,29 +61,25 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
     return `${Math.floor(diff / 1440)}d ago`;
   }, [createdAt]);
 
-  // local UI state (demo)
-  const [isLiked, setIsLiked] = useState(
-    post.liked ?? post.likedByCurrentUser ?? post.isLikedByCurrentUser ?? false
-  );
+  // local UI state 
+  const [isLiked, setIsLiked] = useState(post.liked ?? post.likedByCurrentUser ?? post.isLikedByCurrentUser ?? false);
   const [likes, setLikes] = useState(post.likeCount ?? 0);
   const [liking, setLiking] = useState(false);
-  const [isReposted, setIsReposted] = useState(false);
+  const [isReposted, setIsReposted] = useState(post.repostedByCurrentUser ?? false);
   const [reposts, setReposts] = useState(post.repostCount ?? 0);
+  const [repostMenuOpen, setRepostMenuOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   useEffect(() => {
-    setIsLiked(
-      post.liked ?? post.likedByCurrentUser ?? post.isLikedByCurrentUser ?? false
-    );
+    setIsLiked( post.liked ?? post.likedByCurrentUser ?? post.isLikedByCurrentUser ?? false);
     setLikes(post.likeCount ?? 0);
   }, [post.liked, post.likedByCurrentUser, post.isLikedByCurrentUser, post.likeCount]);
 
   const handleLike = async () => {
     if (liking) return;
-
-    const id = post.id ?? post.postId;
+    const id = originalPostId;
     if (!id) return;
 
-    // optimistic update
     const prevLiked = isLiked;
     const prevLikes = likes;
     const nextLiked = !isLiked;
@@ -69,7 +93,6 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
 
     try {
       const res = await likeApi.togglePost(id);
-
       if (typeof res?.liked === "boolean") {
         setIsLiked(res.liked);
       }
@@ -85,10 +108,50 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
     }
   };
 
-  const handleRepost = () => {
-    const next = !isReposted;
-    setIsReposted(next);
-    setReposts((v) => (next ? v + 1 : Math.max(0, v - 1)));
+  useEffect(() => {
+  setIsReposted(post.repostedByCurrentUser ?? false);
+  }, [post.repostedByCurrentUser]);
+
+  useEffect(() => {
+    setReposts(post.repostCount ?? 0);
+  }, [post.repostCount]);
+
+  const handleRepostAction = async () => {
+  const id = originalPostId;
+  if (!id) return;
+
+  try {
+    if (isReposted) {
+      await dispatch(unrepostPost(id)).unwrap();
+      toast.success("Đã gỡ đăng lại bài viết");
+    } else {
+      await dispatch(repostPost(id)).unwrap();
+      toast.success("Đã đăng lại bài viết");
+    }
+    setRepostMenuOpen(false);
+  } catch (err) {
+    console.error(isReposted ? "Unrepost failed:" : "Repost failed:", err);
+
+    toast.error(
+      isReposted
+        ? "Gỡ đăng lại thất bại, vui lòng thử lại"
+        : "Đăng lại thất bại, vui lòng thử lại"
+    );
+  }
+};
+
+  const handleDeletePost = async () => {
+    const id = post.id ?? post.postId;
+    if (!id) return;
+
+    try {
+      await dispatch(deletePost(id)).unwrap();
+      toast.success("Đã xóa bài viết");
+      setMoreMenuOpen(false);
+    } catch (err) {
+      console.error("Delete post failed:", err);
+      toast.error("Xóa bài viết thất bại, vui lòng thử lại");
+    }
   };
 
   const formatNumber = (num) =>
@@ -193,7 +256,8 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
     return () => observer.disconnect();
   }, [mediaCount]);
 
-  // ================= RENDER =================
+  const canDelete = !isRepost && post.userId && currentUserId && post.userId === currentUserId;
+
   return (
     <div
       ref={cardRef}
@@ -223,8 +287,23 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
         `}
       </style>
 
+      {/* X reposted */}
+      {isRepost && (
+        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1 pl-10">
+          <Repeat2 className="w-5 h-4" />
+          <button
+            className="hover:underline"
+            onClick={(e) => {
+              e.stopPropagation();       
+              onProfileClick?.(baseUsername); }}>
+            {reposterName}
+          </button> 
+            reposted
+        </div>
+      )}
+
       <div className="flex items-start gap-3">
-        {/* Avatar + click vào profile */}
+        {/* Avatar + click vào profile  */}
         <button
           className="p-0 h-auto rounded-full"
           onClick={() => onProfileClick?.(handle)}
@@ -261,27 +340,60 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
             >
               {relative}
             </span>
+            {/* More menu */}
             <div className="ml-auto">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 h-auto"
-                aria-label="More"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
+              <DropdownMenu open={moreMenuOpen} onOpenChange={setMoreMenuOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-2 h-auto"
+                    aria-label="More"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent
+                  align="end"
+                  sideOffset={8}
+                  className="w-44 bg-[#1e1e1e] border-[#2a2a2a] text-[15px] font-semibold p-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {canDelete && (
+                    <DropdownMenuItem
+                      className="cursor-pointer hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] rounded-md px-3 py-2"
+                      onClick={handleDeletePost}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className="text-red-500">Xóa bài viết</span>
+                      </div>
+                    </DropdownMenuItem>
+                  )}
+
+                  <DropdownMenuItem
+                    className="cursor-pointer hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] rounded-md px-3 py-2"
+                    onClick={() => {
+                      setMoreMenuOpen(false);
+                    }}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-white">Sao chép liên kết</span>
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
           {/* Content + media */}
           <div className="mb-3">
-            {/* Nhấn vào text cũng mở chi tiết */}
             <p className="whitespace-pre-wrap">
               {post.content}
             </p>
 
-            {/* -------- PHẦN MEDIA -------- */}
+            {/* PHẦN MEDIA */}
             {mediaCount > 0 && (
               <div className="mt-3 flex justify-center">
                 {mediaCount === 1 ? (
@@ -395,8 +507,9 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
             {/* -------- END MEDIA -------- */}
           </div>
 
-          {/* Actions: comment / repost / like / share */}
+          {/* Actions: like / comment / repost */}
           <div className="flex items-center justify-between max-w-md">
+            {/* Like button */}
             <Button
               variant="ghost"
               size="sm"
@@ -439,41 +552,55 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
               </span>
             </Button>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 h-auto group"
-              onClick={(e) => {
-                e.stopPropagation(); 
-                handleRepost();
-              }}
-              aria-label="Repost"
-            >
-              <Repeat2
-                className={`w-5 h-5 ${
-                  isReposted ? "text-green-500" : "group-hover:text-green-500"
-                }`}
-              />
-              <span
-                className={`ml-1 text-sm ${
-                  isReposted
-                    ? "text-green-500"
-                    : "text-muted-foreground group-hover:text-green-500"
-                }`}
+            {/* Repost: mở menu repost */}
+            <DropdownMenu open={repostMenuOpen} onOpenChange={setRepostMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-2 h-auto group"
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label="Repost"
+                >
+                  <Repeat2
+                    className={`w-5 h-5 ${
+                      isReposted ? "text-green-500" : "group-hover:text-green-500"
+                    }`}
+                  />
+                  <span
+                    className={`ml-1 text-sm ${
+                      isReposted
+                        ? "text-green-500"
+                        : "text-muted-foreground group-hover:text-green-500"
+                    }`}
+                  >
+                    {formatNumber(reposts)}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={8}
+                className="w-44 bg-[#1e1e1e] border-[#2a2a2a] text-[15px] font-semibold p-1"
+                onClick={(e) => e.stopPropagation()}
               >
-                {formatNumber(reposts)}
-              </span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 h-auto group"
-              aria-label="Share"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Share className="w-5 h-5 group-hover:text-blue-500 transition-colors" />
-            </Button>
+                <DropdownMenuItem
+                  className="cursor-pointer hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] rounded-md px-3 py-2"
+                  onClick={handleRepostAction}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span className={isReposted ? "text-red-500" : "text-white"}>
+                      {isReposted ? "Gỡ đăng lại" : "Đăng lại"}
+                    </span>
+                    <Repeat2
+                      className={`w-4 h-4 ${
+                        isReposted ? "text-red-500" : "text-muted-foreground"
+                      }`}
+                    />
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

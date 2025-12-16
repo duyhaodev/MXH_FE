@@ -16,6 +16,13 @@ import {
   fetchUserPosts,
   selectUserPosts,
   selectUserPostsLoading,
+
+  fetchMyReposts,
+  fetchUserReposts,
+  selectMyReposts,
+  selectMyRepostsLoading,
+  selectUserReposts,
+  selectUserRepostsLoading,
 } from "../../store/postsSlice";
 
 import postApi from "../../api/postApi";
@@ -33,13 +40,17 @@ export function ProfilePage() {
 
   // Lấy thông tin user đã đăng nhập
   const profile = useSelector((s) => s.user.profile) ?? {};
-  // Lấy bài viết của chính mình
+  // TAB THREADS
   const myPosts = useSelector(selectMyPosts);
   const loadingMyPosts = useSelector(selectMyPostsLoading);
-
-  // State lưu bài viết của NGƯỜI KHÁC
   const otherPosts = useSelector(selectUserPosts);
   const loadingOther = useSelector(selectUserPostsLoading);
+
+  //TAB REPOSTS
+  const myReposts = useSelector(selectMyReposts);
+  const loadingMyReposts = useSelector(selectMyRepostsLoading);
+  const userReposts = useSelector(selectUserReposts);
+  const loadingUserReposts = useSelector(selectUserRepostsLoading);
 
   // State lưu thông tin profile của NGƯỜI KHÁC
   const [otherProfile, setOtherProfile] = useState(null);
@@ -81,12 +92,14 @@ export function ProfilePage() {
   useEffect(() => {
     if (isOwnProfile) {
       dispatch(fetchMyPosts());
+      dispatch(fetchMyReposts());
     }
     else if (cleanUsername) {
       (async () => {
         try {
           // dùng cleanUsername (không có @) để gọi BE
           dispatch(fetchUserPosts({ username: cleanUsername }));
+          dispatch(fetchUserReposts({ username: cleanUsername }));
           const userRes = await postApi.getUserByUsername(cleanUsername);
           setOtherProfile(userRes.result);
         } catch (err) {
@@ -119,8 +132,11 @@ export function ProfilePage() {
     setIsFollowing((prev) => !prev);
   };
 
-  // Chọn bài viết để render
+  // Threads để render
   const postsToRender = isOwnProfile ? myPosts : otherPosts;
+  // Reposts để render
+  const repostsToRender = isOwnProfile ? myReposts : userReposts;
+  //Loading profile
   if (!user && (isOwnProfile ? loadingMyPosts : loadingOther)) {
     return (
       <div className="p-8 text-center text-muted-foreground">
@@ -264,7 +280,7 @@ export function ProfilePage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab Threads: hiển thị danh sách bài viết */}
+        {/* Tab Threads */}
         <TabsContent value="threads" className="mt-0">
           {(isOwnProfile && loadingMyPosts) || (!isOwnProfile && loadingOther) ? (
             <div className="p-8 text-center text-muted-foreground">
@@ -288,18 +304,35 @@ export function ProfilePage() {
           )}
         </TabsContent>
 
-        {/* Tab Replies (chưa làm, để placeholder) */}
+        {/* Tab Replies */}
         <TabsContent value="replies" className="mt-0">
           <div className="p-8 text-center text-muted-foreground">
             No replies yet
           </div>
         </TabsContent>
 
-        {/* Tab Reposts (chưa làm, để placeholder) */}
+        {/* Tab Reposts */}
         <TabsContent value="reposts" className="mt-0">
-          <div className="p-8 text-center text-muted-foreground">
-            No reposts yet
-          </div>
+          {(isOwnProfile && loadingMyReposts) || (!isOwnProfile && loadingUserReposts) ? (
+            <div className="p-8 text-center text-muted-foreground">
+              Đang tải reposts...
+            </div>
+          ) : repostsToRender?.length > 0 ? (
+            <div>
+              {repostsToRender.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onProfileClick={handleProfileClick}
+                  onPostClick={handleOpenPost}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-muted-foreground">
+              No reposts yet
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
