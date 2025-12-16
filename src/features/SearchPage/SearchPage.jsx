@@ -1,13 +1,52 @@
 import { useState, useEffect } from "react";
-import { Search, Verified } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, Verified, Check } from "lucide-react";
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { PostCard } from "../../components/PostCard/PostCard.jsx";
 import { searchApi } from "../../api/searchApi";
+import followApi from "../../api/followApi";
+import userApi from "../../api/userApi";
+import { toast } from "sonner";
 
-export function SearchPage({ onProfileClick }) {
+export function SearchPage() {
+  const navigate = useNavigate();
+
+  // States cho current user
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
+
+  // Fetch current user khi mount
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        setAuthLoading(true);
+        setAuthError(null);
+        
+        const response = await userApi.getMyInfo();
+        
+        // Adjust theo backend response thực tế (có thể là response.data hoặc response trực tiếp)
+        const userData = response.data || response;
+        setCurrentUser(userData);
+      } catch (err) {
+        console.error('Error fetching current user:', err);
+        setAuthError(err.response?.data?.message || 'Failed to load user');
+        setCurrentUser(null);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
+  const onProfileClick = (username) => {
+    navigate(`/profile/${username}`);
+  };
+
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState([]);
   const [posts, setPosts] = useState([]);
@@ -29,8 +68,15 @@ export function SearchPage({ onProfileClick }) {
 
         const data = res.data || res; // axiosClient có thể trả .data hoặc cả response
         if (data.code === 200 && data.result) {
+          const rawPosts = data.result.posts || [];
+          const normalizedPosts = rawPosts.map(p => ({
+            ...p,
+            mediaList: typeof p.mediaList === "string" 
+              ? JSON.parse(p.mediaList)
+              : (p.mediaList || [])
+          }));
+          setPosts(normalizedPosts);
           setUsers(data.result.users || []);
-          setPosts(data.result.posts || []);
         } else {
           setUsers([]);
           setPosts([]);
@@ -58,14 +104,14 @@ export function SearchPage({ onProfileClick }) {
 
       <div>
         <div className="pt-5"></div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <input
+        <div className="flex items-center gap-2 bg-muted p-2 rounded">
+          <Search className="w-4 h-4 text-muted-foreground" />
+          <Input
             type="text"
-            placeholder="Tìm kiếm"
+            placeholder="Search for users or posts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#555]"
+            className="flex-1 border-none bg-transparent"
           />
         </div>
         {!searchQuery.trim() ? (
@@ -83,76 +129,69 @@ export function SearchPage({ onProfileClick }) {
             subtitle="Try searching for something else"
           />
         ) : (
-          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full mt-4">
-            <TabsList className="w-full justify-start rounded-none border-b border-[#333] bg-transparent p-0 h-auto">
-              <TabsTrigger 
-                value="all" 
-                className="relative px-4 py-3 text-sm font-medium text-gray-400 hover:text-white transition-colors data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-[2px] data-[state=active]:after:bg-white rounded-none border-none"
-              >
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
+              <TabsTrigger value="all" className="tab-btn">
                 All ({totalResults})
               </TabsTrigger>
-              <TabsTrigger 
-                value="users" 
-                className="relative px-4 py-3 text-sm font-medium text-gray-400 hover:text-white transition-colors data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-[2px] data-[state=active]:after:bg-white rounded-none border-none"
-              >
+              <TabsTrigger value="users" className="tab-btn">
                 Users ({users.length})
               </TabsTrigger>
-              <TabsTrigger 
-                value="posts" 
-                className="relative px-4 py-3 text-sm font-medium text-gray-400 hover:text-white transition-colors data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-[2px] data-[state=active]:after:bg-white rounded-none border-none"
-              >
+              <TabsTrigger value="posts" className="tab-btn">
                 Posts ({posts.length})
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="all" className="mt-0 pt-0">
+            <TabsContent value="all" className="mt-0">
               {users.length > 0 && (
-                <div className="mt-6">
-                  <div className="px-4 pb-3 border-b border-[#333]">
-                    <h3 className="text-xl font-semibold text-white">Users</h3>
-                  </div>
-                  <Section
-                    title="Users"
-                    items={users}
-                    renderItem={(user) => (
-                      <UserCard key={user.id} user={user} onProfileClick={onProfileClick} />
-                    )}
-                    total={users.length}
-                    switchTab="users"
-                    onViewAll={() => setCurrentTab("users")}
-                  />
-                </div>
+                <Section
+                  title="Users"
+                  items={users}
+                  renderItem={(user) => (
+                    <UserCard 
+                      key={user.id} 
+                      user={user} 
+                      onProfileClick={onProfileClick}
+                      currentUserId={currentUser?.result.id}
+                      authLoading={authLoading}
+                    />
+                  )}
+                  total={users.length}
+                  switchTab="users"
+                  onViewAll={() => setCurrentTab("users")}
+                />
               )}
               {posts.length > 0 && (
-                <div className="mt-6">
-                  <div className="px-4 pb-3 border-b border-[#333]">
-                    <h3 className="text-xl font-semibold text-white">Posts</h3>
-                  </div>
-                  <Section
-                    title="Posts"
-                    items={posts}
-                    renderItem={(post) => (
-                      <PostCard key={post.id} post={post} onProfileClick={onProfileClick} />
-                    )}
-                    total={posts.length}
-                    switchTab="posts"
-                    onViewAll={() => setCurrentTab("posts")}
-                  />
-                </div>
+                <Section
+                  title="Posts"
+                  items={posts}
+                  renderItem={(post) => (
+                    <PostCard key={post.id} post={post} onProfileClick={onProfileClick} />
+                  )}
+                  total={posts.length}
+                  switchTab="posts"
+                  onViewAll={() => setCurrentTab("posts")}
+                />
               )}
             </TabsContent>
 
-            <TabsContent value="users" className="mt-0 pt-0">
+            <TabsContent value="users" className="mt-0">
               {users.length > 0 ? (
                 users.map((user) => (
-                  <UserCard key={user.id} user={user} onProfileClick={onProfileClick} />
+                  <UserCard 
+                    key={user.id} 
+                    user={user} 
+                    onProfileClick={onProfileClick}
+                    currentUserId={currentUser?.id}
+                    authLoading={authLoading}
+                  />
                 ))
               ) : (
                 <NoData text="No users found" />
               )}
             </TabsContent>
 
-            <TabsContent value="posts" className="mt-0 pt-0">
+            <TabsContent value="posts" className="mt-0">
               {posts.length > 0 ? (
                 posts.map((post) => (
                   <PostCard key={post.id} post={post} onProfileClick={onProfileClick} />
@@ -189,12 +228,15 @@ function NoData({ text }) {
 function Section({ title, items, renderItem, total, onViewAll }) {
   return (
     <div>
+      <div className="p-4 border-b border-border">
+        <h3 className="text-sm text-muted-foreground">{title}</h3>
+      </div>
       {items.slice(0, 3).map(renderItem)}
       {items.length > 3 && (
-        <div className="px-4 py-3 border-t border-[#333]">
+        <div className="p-4 border-b border-border text-center">
           <Button
-            variant="ghost"
-            className="w-full text-gray-400 hover:text-white text-sm font-medium"
+            variant="link"
+            className="text-muted-foreground"
             onClick={onViewAll}
           >
             View all {total} {title.toLowerCase()}
@@ -205,7 +247,50 @@ function Section({ title, items, renderItem, total, onViewAll }) {
   );
 }
 
-function UserCard({ user, onProfileClick }) {
+function UserCard({ user, onProfileClick, currentUserId, authLoading }) {
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [buttonLoading, setButtonLoading] = useState(false);
+
+  // Nếu là chính user hiện tại, không fetch status và không show button
+  const isCurrentUser = user.id === currentUserId;
+  console.log("current:", currentUserId);
+  // Fetch initial following status (chỉ nếu không phải current user và không đang loading auth)
+  useEffect(() => {
+    if (isCurrentUser || authLoading || !user.id) return;
+
+    const checkStatus = async () => {
+      try {
+        const res = await followApi.checkFollowing(user.id);
+        console.log("API res for checkFollowing:", res);
+        const followingStatus = res?.data?.isFollowingValue ?? res?.isFollowingValue ?? false;
+        setIsFollowing(!!followingStatus);  // Convert to boolean
+      } catch (err) {
+        console.error("Error checking follow status:", err);
+      }
+    };
+
+    checkStatus();
+  }, [user.id, isCurrentUser, authLoading]);
+
+  const handleToggleFollow = async () => {
+    if (buttonLoading || isCurrentUser) return;
+    setButtonLoading(true);
+
+    try {
+      const res = await followApi.toggleFollow(user.id);
+      console.log("API res for toggleFollow:", res);  // Debug
+      const newStatus = res?.data?.isFollowing ?? res?.isFollowing ?? !isFollowing;
+      setIsFollowing(!!newStatus);
+      toast.success(res?.data?.message ?? res?.message ?? (newStatus ? "Đã follow!" : "Đã unfollow!"));
+    } catch (err) {
+      console.error("Toggle follow error:", err);
+      toast.error(err.response?.data?.message || "Toggle follow failed!");
+      // Revert on error if needed, but skip for simplicity
+    } finally {
+      setButtonLoading(false);
+    }
+  };
+
   const formatNumber = (num) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
     if (num >= 1000) return (num / 1000).toFixed(1) + "K";
@@ -215,17 +300,17 @@ function UserCard({ user, onProfileClick }) {
   return (
     <div className="border-b border-border p-4 hover:bg-muted/50 transition-colors">
       <div className="flex items-start gap-3">
-        <Button
-          variant="ghost"
-          size="sm"
+        {/* Avatar + click vào profile */}
+        <button
           className="p-0 h-auto rounded-full"
           onClick={() => onProfileClick?.(user.userName)}
+          title={user.fullName}
         >
-          <Avatar className="w-12 h-12">
+          <Avatar className="w-10 h-10">
             <AvatarImage src={user.avatarUrl} alt={user.fullName} />
-            <AvatarFallback>{(user.fullName || "?").charAt(0)}</AvatarFallback>
+            <AvatarFallback>{user.fullName?.charAt(0) || "U"}</AvatarFallback>
           </Avatar>
-        </Button>
+        </button>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -252,9 +337,22 @@ function UserCard({ user, onProfileClick }) {
           )}
         </div>
 
-        <Button variant="outline" size="sm">
-          Follow
-        </Button>
+        {/* Chỉ show button nếu không phải current user và auth đã load xong */}
+        {!isCurrentUser && !authLoading && (
+          <Button 
+            variant={isFollowing ? "secondary" : "outline"} 
+            size="sm" 
+            onClick={handleToggleFollow}
+            disabled={buttonLoading}
+            className={isFollowing ? "text-green-600 border-green-600 hover:bg-green-50" : ""}
+          >
+            {buttonLoading ? "..." : isFollowing ? (
+              <>
+                <Check className="w-4 h-4 mr-1" /> Following
+              </>
+            ) : "Follow"}
+          </Button>
+        )}
       </div>
     </div>
   );

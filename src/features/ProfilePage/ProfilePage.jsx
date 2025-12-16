@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -26,6 +26,7 @@ import {
 } from "../../store/postsSlice";
 
 import postApi from "../../api/postApi";
+import followApi from "../../api/followApi";
 import { EditProfileDialog } from "./EditProfileDialog.jsx";
 
 export function ProfilePage() {
@@ -43,8 +44,6 @@ export function ProfilePage() {
   // TAB THREADS
   const myPosts = useSelector(selectMyPosts);
   const loadingMyPosts = useSelector(selectMyPostsLoading);
-  const otherPosts = useSelector(selectUserPosts);
-  const loadingOther = useSelector(selectUserPostsLoading);
 
   //TAB REPOSTS
   const myReposts = useSelector(selectMyReposts);
@@ -57,6 +56,8 @@ export function ProfilePage() {
 
   // State tạm cho nút Follow (UI demo, chưa nối BE)
   const [isFollowing, setIsFollowing] = useState(false);
+  const otherPosts = useSelector(selectUserPosts);
+  const loadingOther = useSelector(selectUserPostsLoading);
 
   // mở avatar bằng ImageViewer
   const [avatarViewerOpen, setAvatarViewerOpen] = useState(false);
@@ -90,24 +91,34 @@ export function ProfilePage() {
 
   // LẤY BÀI VIẾT + PROFILE
   useEffect(() => {
-    if (isOwnProfile) {
-      dispatch(fetchMyPosts());
-      dispatch(fetchMyReposts());
+  if (isOwnProfile) {
+    dispatch(fetchMyPosts());
+    dispatch(fetchMyReposts()); // ✅ thêm lại
+    return;
+  }
+
+  if (!cleanUsername) return;
+
+  (async () => {
+    try {
+      dispatch(fetchUserPosts({ username: cleanUsername }));
+      dispatch(fetchUserReposts({ username: cleanUsername })); // ✅ nếu muốn xem repost user khác
+
+      const userRes = await postApi.getUserByUsername(cleanUsername);
+      const followingUser = userRes?.result;
+      setOtherProfile(followingUser);
+
+      if (followingUser?.id) {
+        const followStatusRes = await followApi.checkFollowing(followingUser.id);
+        setIsFollowing(!!followStatusRes?.isFollowingValue);
+      }
+    } catch (err) {
+      console.error("Error loading profile:", err);
     }
-    else if (cleanUsername) {
-      (async () => {
-        try {
-          // dùng cleanUsername (không có @) để gọi BE
-          dispatch(fetchUserPosts({ username: cleanUsername }));
-          dispatch(fetchUserReposts({ username: cleanUsername }));
-          const userRes = await postApi.getUserByUsername(cleanUsername);
-          setOtherProfile(userRes.result);
-        } catch (err) {
-          console.error("Error loading profile:", err);
-        }
-      })();
-    }
-  }, [dispatch, isOwnProfile, cleanUsername]);
+  })();
+}, [dispatch, isOwnProfile, cleanUsername]);
+  
+  
 
   // Hàm khi click vào avatar/username trong PostCard
   const handleProfileClick = (username) => {
@@ -119,7 +130,7 @@ export function ProfilePage() {
     navigate("/feed");
   };
 
-  // Format số follower/following cho đẹp (1.2K, 3.4M,...)
+ // Format số follower/following cho đẹp (1.2K, 3.4M,...)
   const formatNumber = (num) => {
     if (!num) return 0;
     if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
@@ -128,9 +139,49 @@ export function ProfilePage() {
   };
 
   // Toggle Follow/Following
-  const handleFollow = () => {
-    setIsFollowing((prev) => !prev);
-  };
+  const handleFollow = useCallback(async () => {
+    if (!user?.id) return;
+
+    // Tối ưu UI: cập nhật trạng thái ngay lập tức
+    const newFollowingStatus = !isFollowing;
+    setIsFollowing(newFollowingStatus);
+
+    // Tối ưu UI: cập nhật số lượng follower
+    // Tăng/giảm số follower trong state tạm otherProfile
+    setOtherProfile((prev) => {
+        if (!prev) return null;
+        const count = prev.followersCount ?? 0;
+        return {
+            ...prev,
+            followersCount: newFollowingStatus ? count + 1 : count - 1
+        };
+    });
+
+    try {
+      // Gọi API toggle
+      const res = await followApi.toggleFollow(user.id);
+      
+      // Nếu API thành công, trạng thái UI đã đúng.
+      // Nếu API thất bại, đảo ngược lại trạng thái UI/số lượng
+      if (!res.success) {
+        throw new Error(res.message || "Failed to toggle follow");
+      }
+      
+    } catch (error) {
+      console.error("Error toggling follow:", error);
+      // Đảo ngược lại trạng thái (rollback)
+      setIsFollowing(!newFollowingStatus); 
+      setOtherProfile((prev) => {
+        if (!prev) return null;
+        const count = prev.followersCount ?? 0;
+        return {
+            ...prev,
+            followersCount: !newFollowingStatus ? count + 1 : count - 1
+        };
+      });
+      // TODO: Thêm toast/thông báo lỗi cho người dùng
+    }
+  }, [isFollowing, user?.id]);
 
   // Threads để render
   const postsToRender = isOwnProfile ? myPosts : otherPosts;
@@ -150,7 +201,6 @@ export function ProfilePage() {
     if (!id) return;
     navigate(`/post/${id}`);
   };
-
   return (
     <div className="max-w-2xl mx-auto">
       {/* Header cố định trên cùng */}
