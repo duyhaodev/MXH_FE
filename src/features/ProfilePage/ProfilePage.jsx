@@ -1,4 +1,3 @@
-// src/features/ProfilePage/ProfilePage.jsx
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,26 +13,44 @@ import {
   fetchMyPosts,
   selectMyPosts,
   selectMyPostsLoading,
+  fetchUserPosts,
+  selectUserPosts,
+  selectUserPostsLoading,
+
+  fetchMyReposts,
+  fetchUserReposts,
+  selectMyReposts,
+  selectMyRepostsLoading,
+  selectUserReposts,
+  selectUserRepostsLoading,
 } from "../../store/postsSlice";
 
 import postApi from "../../api/postApi";
 import { EditProfileDialog } from "./EditProfileDialog.jsx";
 
-
 export function ProfilePage() {
-  const { username } = useParams();
+  const { username: rawUsername } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const cleanUsername =
+    rawUsername && rawUsername.startsWith("@")
+      ? rawUsername.substring(1)
+      : rawUsername;
+
   // Lấy thông tin user đã đăng nhập
   const profile = useSelector((s) => s.user.profile) ?? {};
-  // Lấy bài viết của chính mình
+  // TAB THREADS
   const myPosts = useSelector(selectMyPosts);
   const loadingMyPosts = useSelector(selectMyPostsLoading);
+  const otherPosts = useSelector(selectUserPosts);
+  const loadingOther = useSelector(selectUserPostsLoading);
 
-  // State lưu bài viết của NGƯỜI KHÁC
-  const [otherPosts, setOtherPosts] = useState([]);
-  const [loadingOther, setLoadingOther] = useState(false);
+  //TAB REPOSTS
+  const myReposts = useSelector(selectMyReposts);
+  const loadingMyReposts = useSelector(selectMyRepostsLoading);
+  const userReposts = useSelector(selectUserReposts);
+  const loadingUserReposts = useSelector(selectUserRepostsLoading);
 
   // State lưu thông tin profile của NGƯỜI KHÁC
   const [otherProfile, setOtherProfile] = useState(null);
@@ -46,9 +63,7 @@ export function ProfilePage() {
 
   // mở dialog Edit profile
   const [editOpen, setEditOpen] = useState(false);
-
-  // Nếu profile của mình
-  const isOwnProfile = !username || username === profile.userName;
+  const isOwnProfile = !cleanUsername || cleanUsername === profile.userName;
   const user = isOwnProfile
     ? {
         id: profile.id,
@@ -75,33 +90,28 @@ export function ProfilePage() {
 
   // LẤY BÀI VIẾT + PROFILE
   useEffect(() => {
-    // Nếu là mình
     if (isOwnProfile) {
       dispatch(fetchMyPosts());
+      dispatch(fetchMyReposts());
     }
-    // Trường hợp đang xem profile NGƯỜI KHÁC
-    else if (username) {
+    else if (cleanUsername) {
       (async () => {
         try {
-          setLoadingOther(true);
-
-          const posts = await postApi.getUserPosts(username);
-          setOtherPosts(Array.isArray(posts) ? posts : []);
-
-          const userRes = await postApi.getUserByUsername(username);
+          // dùng cleanUsername (không có @) để gọi BE
+          dispatch(fetchUserPosts({ username: cleanUsername }));
+          dispatch(fetchUserReposts({ username: cleanUsername }));
+          const userRes = await postApi.getUserByUsername(cleanUsername);
           setOtherProfile(userRes.result);
         } catch (err) {
           console.error("Error loading profile:", err);
-        } finally {
-          setLoadingOther(false);
         }
       })();
     }
-  }, [dispatch, isOwnProfile, username]);
+  }, [dispatch, isOwnProfile, cleanUsername]);
 
   // Hàm khi click vào avatar/username trong PostCard
   const handleProfileClick = (username) => {
-    navigate(`/profile/${username}`);
+    navigate(`/profile/@${username}`);
   };
 
   // Back lại feed
@@ -122,8 +132,11 @@ export function ProfilePage() {
     setIsFollowing((prev) => !prev);
   };
 
-  // Chọn bài viết để render
+  // Threads để render
   const postsToRender = isOwnProfile ? myPosts : otherPosts;
+  // Reposts để render
+  const repostsToRender = isOwnProfile ? myReposts : userReposts;
+  //Loading profile
   if (!user && (isOwnProfile ? loadingMyPosts : loadingOther)) {
     return (
       <div className="p-8 text-center text-muted-foreground">
@@ -192,6 +205,7 @@ export function ProfilePage() {
             </Avatar>
           </button>
         </div>
+
         {/* Stats followers / following */}
         <div className="flex items-center gap-6 mb-6">
           <button className="hover:underline">
@@ -266,7 +280,7 @@ export function ProfilePage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab Threads: hiển thị danh sách bài viết */}
+        {/* Tab Threads */}
         <TabsContent value="threads" className="mt-0">
           {(isOwnProfile && loadingMyPosts) || (!isOwnProfile && loadingOther) ? (
             <div className="p-8 text-center text-muted-foreground">
@@ -290,18 +304,35 @@ export function ProfilePage() {
           )}
         </TabsContent>
 
-        {/* Tab Replies (chưa làm, để placeholder) */}
+        {/* Tab Replies */}
         <TabsContent value="replies" className="mt-0">
           <div className="p-8 text-center text-muted-foreground">
             No replies yet
           </div>
         </TabsContent>
 
-        {/* Tab Reposts (chưa làm, để placeholder) */}
+        {/* Tab Reposts */}
         <TabsContent value="reposts" className="mt-0">
-          <div className="p-8 text-center text-muted-foreground">
-            No reposts yet
-          </div>
+          {(isOwnProfile && loadingMyReposts) || (!isOwnProfile && loadingUserReposts) ? (
+            <div className="p-8 text-center text-muted-foreground">
+              Đang tải reposts...
+            </div>
+          ) : repostsToRender?.length > 0 ? (
+            <div>
+              {repostsToRender.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onProfileClick={handleProfileClick}
+                  onPostClick={handleOpenPost}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-muted-foreground">
+              No reposts yet
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 

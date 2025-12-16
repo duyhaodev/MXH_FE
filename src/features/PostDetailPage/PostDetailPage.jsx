@@ -1,54 +1,46 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import postApi from "@/api/postApi";
+import { useDispatch, useSelector } from "react-redux";
 import { PostCard } from "@/components/PostCard/PostCard.jsx";
+import { PostComments } from "@/components/PostComments/PostComments.jsx";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { fetchPostById, selectPostDetail, selectPostDetailLoading, selectPostDetailError, } from "../../store/postsSlice"; // đường dẫn tuỳ cấu trúc của bạn
 
 export function PostDetailPage() {
-  const { postId } = useParams(); // Lấy postId từ URL
+  const { postId } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const [post, setPost] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const post = useSelector(selectPostDetail);
+  const loading = useSelector(selectPostDetailLoading);
+  const error = useSelector(selectPostDetailError);
 
-  // Gọi API lấy chi tiết 1 bài viết
+  // ======== LOAD POST ========
   useEffect(() => {
     if (!postId) return;
+    dispatch(fetchPostById(postId));
+  }, [postId, dispatch]);
 
-    const fetchPost = async () => {
-      try {
-        setLoading(true);
-        const data = await postApi.getPostById(postId);
-        setPost(data);
-      } catch (err) {
-        console.error("Lỗi khi load post detail:", err);
-        toast.error("Không tải được bài viết");
-        setPost(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPost();
-  }, [postId]);
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/");
-    }
+    if (window.history.length > 1) navigate(-1);
+    else navigate("/");
   };
 
   const handleProfileClick = (username) => {
     if (!username) return;
-    navigate(`/profile/${username}`);
+    navigate(`/profile/@${username}`);
   };
 
-  if (loading) {
+  if (loading && !post) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spinner />
@@ -82,11 +74,11 @@ export function PostDetailPage() {
         <span className="font-semibold">Thread</span>
       </div>
 
-      {/* Bài viết chi tiết */}
-      <PostCard
-        post={post}
-        onProfileClick={handleProfileClick}
-      />
+      {/* Bài viết */}
+      <PostCard post={post} onProfileClick={handleProfileClick} />
+
+      {/* Comment */}
+      <PostComments postId={post.repostOfId ?? post.id} onProfileClick={handleProfileClick} onCommentCreated={() => dispatch(fetchPostById(post.id))}/>
     </div>
   );
 }
