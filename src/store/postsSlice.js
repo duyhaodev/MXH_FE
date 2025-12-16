@@ -177,6 +177,32 @@ const postsSlice = createSlice({
       state.hasMore = true;
       state.error = null;
     },
+    syncLikeByOriginalId(state, action) {
+      const { originalId, liked, likeCount } = action.payload || {};
+      if (!originalId) return;
+
+      const apply = (p) => {
+        const pOriginalId = p?.repostOfId ?? p?.id;
+        if (pOriginalId === originalId) {
+          p.likeCount = likeCount;
+          if (typeof p.likedByCurrentUser === "boolean") {
+            p.likedByCurrentUser = liked;
+          } else if (typeof p.isLikedByCurrentUser === "boolean") {
+            p.isLikedByCurrentUser = liked;
+          } else if (typeof p.liked === "boolean") {
+            p.liked = liked;
+          } else {
+            p.likedByCurrentUser = liked;
+          }
+        }
+      };
+      state.items.forEach(apply);
+      state.myPosts.forEach(apply);
+      state.userPosts.forEach(apply);
+      state.myReposts.forEach(apply);
+      state.userReposts.forEach(apply);
+      if (state.postDetail) apply(state.postDetail);
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -400,7 +426,7 @@ const postsSlice = createSlice({
   },
 });
 
-export const { resetFeed } = postsSlice.actions;
+export const { resetFeed, syncLikeByOriginalId} = postsSlice.actions;
 export default postsSlice.reducer;
 
 // Selectors
@@ -430,3 +456,5 @@ export const selectUserRepostsError = (state) => state.posts.userRepostsError;
 export const selectPostDetail = (state) => state.posts.postDetail;
 export const selectPostDetailLoading = (state) => state.posts.loadingPostDetail;
 export const selectPostDetailError = (state) => state.posts.postDetailError;
+
+

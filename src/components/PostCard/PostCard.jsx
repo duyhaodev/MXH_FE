@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { ImageViewer } from "../ImageViewer/ImageViewer.jsx";
 import likeApi from "@/api/likeApi";
 import { useSelector, useDispatch } from "react-redux";
-import { repostPost, unrepostPost, deletePost } from "@/store/postsSlice";
+import { repostPost, unrepostPost, syncLikeByOriginalId, deletePost } from "@/store/postsSlice";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -76,37 +76,44 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
   }, [post.liked, post.likedByCurrentUser, post.isLikedByCurrentUser, post.likeCount]);
 
   const handleLike = async () => {
-    if (liking) return;
-    const id = originalPostId;
-    if (!id) return;
+  if (liking) return;
+  const id = originalPostId;
+  if (!id) return;
 
-    const prevLiked = isLiked;
-    const prevLikes = likes;
-    const nextLiked = !isLiked;
-    const nextLikes = nextLiked
-      ? prevLikes + 1
-      : Math.max(0, prevLikes - 1);
+  const prevLiked = isLiked;
+  const prevLikes = likes;
+  const nextLiked = !isLiked;
+  const nextLikes = nextLiked
+    ? prevLikes + 1
+    : Math.max(0, prevLikes - 1);
 
-    setIsLiked(nextLiked);
-    setLikes(nextLikes);
-    setLiking(true);
+  // optimistic UI
+  setIsLiked(nextLiked);
+  setLikes(nextLikes);
+  setLiking(true);
 
-    try {
-      const res = await likeApi.togglePost(id);
-      if (typeof res?.liked === "boolean") {
-        setIsLiked(res.liked);
-      }
-      if (typeof res?.likeCount === "number") {
-        setLikes(res.likeCount);
-      }
-    } catch (err) {
-      console.error("Toggle like failed:", err);
-      setIsLiked(prevLiked);
-      setLikes(prevLikes);
-    } finally {
-      setLiking(false);
+  try {
+    const res = await likeApi.togglePost(id);
+
+    if (typeof res?.liked === "boolean" && typeof res?.likeCount === "number") {
+      setIsLiked(res.liked);
+      setLikes(res.likeCount);
+      dispatch(
+        syncLikeByOriginalId({
+          originalId: id,
+          liked: res.liked,
+          likeCount: res.likeCount,
+        })
+      );
     }
-  };
+  } catch (err) {
+    console.error("Toggle like failed:", err);
+    setIsLiked(prevLiked);
+    setLikes(prevLikes);
+  } finally {
+    setLiking(false);
+  }
+};
 
   useEffect(() => {
   setIsReposted(post.repostedByCurrentUser ?? false);
