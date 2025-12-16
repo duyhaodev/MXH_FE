@@ -16,6 +16,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { PostDetailPage } from "./features/PostDetailPage/PostDetailPage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import PublicRoute from "./components/PublicRoute.jsx";
+import { getToken } from "./api/localStorageService.js";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -24,7 +25,7 @@ export default function App() {
   // Set dark mode by default and verify token on initial load
   useEffect(() => {
     document.documentElement.classList.add('dark');
-    const token = localStorage.getItem("token");
+    const token = getToken();
     if (token) {
       dispatch(verifyToken());
     }
@@ -32,7 +33,7 @@ export default function App() {
 
   // While verifying token, show a loader to prevent route flashing
   // We only want to show this initial loading screen if a token exists and we are verifying it.
-  const isVerifyingToken = loading && !isAuthenticated && localStorage.getItem("token");
+  const isVerifyingToken = loading && !isAuthenticated && getToken();
   if (isVerifyingToken) {
     return (
       <>

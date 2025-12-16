@@ -1,10 +1,20 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { Sidebar } from "../Sidebar/Sidebar";
 import { MessagePopup } from "../MessagePopup/MessagePopup";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchConversations } from "../../store/chatSlice";
 
 export function ThreadsLayout() {
   const location = useLocation();
   const currentPage = location.pathname.split('/')[1] || 'feed';
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.user); // Assuming user info is here to check if logged in
+
+  // Initial fetch of conversations
+  useEffect(() => {
+    dispatch(fetchConversations());
+  }, [dispatch]);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -58,8 +68,8 @@ export function ThreadsLayout() {
           </div>
         </div>
       </div>
-              {/* Message Popup */}
-            <MessagePopup />
+        {/* Message Popup */}
+        <MessagePopup />
     </div>
   );
 }

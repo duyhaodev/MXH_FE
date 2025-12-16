@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import authApi from "../api/authApi";
 import userApi from "../api/userApi";
+import { getToken, removeToken, setToken } from "../api/localStorageService";
 
 export const login = createAsyncThunk(
   "user/login",
@@ -11,7 +12,7 @@ export const login = createAsyncThunk(
         return rejectWithValue(res || "LOGIN_FAILED");
       }
       const token = res.result.token;
-      localStorage.setItem("token", token);
+      setToken(token);
       dispatch(fetchMyInfo()); // Fetch user info after successful login
       return { token };
     } catch (e) {
@@ -24,12 +25,12 @@ export const verifyToken = createAsyncThunk(
   "user/verifyToken",
   async (_, { rejectWithValue, dispatch }) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken()
       if (!token) return rejectWithValue("NO_TOKEN");
 
       const res = await authApi.introspect(token);
       if (!res || res.code !== 1000 || !res.result?.valid) {
-        localStorage.removeItem("token");
+        removeToken();
         return rejectWithValue("INVALID_TOKEN");
       }
 
@@ -37,7 +38,7 @@ export const verifyToken = createAsyncThunk(
       dispatch(fetchMyInfo());
       return { token };
     } catch (e) {
-      localStorage.removeItem("token");
+      removeToken();
       return rejectWithValue(e.response?.data || e.message || "VERIFY_ERROR");
     }
   }
@@ -65,11 +66,11 @@ export const logoutUser = createAsyncThunk(
       if (token) {
         await authApi.logout(token);
       }
-      localStorage.removeItem("token");
+      removeToken();
       return null;
     } catch (e) {
       // Vẫn xóa token local dù API lỗi
-      localStorage.removeItem("token");
+      removeToken();
       return rejectWithValue(e.response?.data || e.message || "LOGOUT_ERROR");
     }
   }

@@ -58,11 +58,11 @@ export function SearchPage({ onProfileClick }) {
 
       <div>
         <div className="pt-5"></div>
-        <div className="flex items-center">
-          <Search className="absolute w-4 h-4 text-muted-foreground" />
-          <Input
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input
             type="text"
-            placeholder="Search for users or posts..."
+            placeholder="Tìm kiếm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#555]"
@@ -83,47 +83,66 @@ export function SearchPage({ onProfileClick }) {
             subtitle="Try searching for something else"
           />
         ) : (
-          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
-              <TabsTrigger value="all" className="tab-btn">
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full mt-4">
+            <TabsList className="w-full justify-start rounded-none border-b border-[#333] bg-transparent p-0 h-auto">
+              <TabsTrigger 
+                value="all" 
+                className="relative px-4 py-3 text-sm font-medium text-gray-400 hover:text-white transition-colors data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-[2px] data-[state=active]:after:bg-white rounded-none border-none"
+              >
                 All ({totalResults})
               </TabsTrigger>
-              <TabsTrigger value="users" className="tab-btn">
+              <TabsTrigger 
+                value="users" 
+                className="relative px-4 py-3 text-sm font-medium text-gray-400 hover:text-white transition-colors data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-[2px] data-[state=active]:after:bg-white rounded-none border-none"
+              >
                 Users ({users.length})
               </TabsTrigger>
-              <TabsTrigger value="posts" className="tab-btn">
+              <TabsTrigger 
+                value="posts" 
+                className="relative px-4 py-3 text-sm font-medium text-gray-400 hover:text-white transition-colors data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-[2px] data-[state=active]:after:bg-white rounded-none border-none"
+              >
                 Posts ({posts.length})
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="all" className="mt-0">
+            <TabsContent value="all" className="mt-0 pt-0">
               {users.length > 0 && (
-                <Section
-                  title="Users"
-                  items={users}
-                  renderItem={(user) => (
-                    <UserCard key={user.id} user={user} onProfileClick={onProfileClick} />
-                  )}
-                  total={users.length}
-                  switchTab="users"
-                  onViewAll={() => setCurrentTab("users")}
-                />
+                <div className="mt-6">
+                  <div className="px-4 pb-3 border-b border-[#333]">
+                    <h3 className="text-xl font-semibold text-white">Users</h3>
+                  </div>
+                  <Section
+                    title="Users"
+                    items={users}
+                    renderItem={(user) => (
+                      <UserCard key={user.id} user={user} onProfileClick={onProfileClick} />
+                    )}
+                    total={users.length}
+                    switchTab="users"
+                    onViewAll={() => setCurrentTab("users")}
+                  />
+                </div>
               )}
               {posts.length > 0 && (
-                <Section
-                  title="Posts"
-                  items={posts}
-                  renderItem={(post) => (
-                    <PostCard key={post.id} post={post} onProfileClick={onProfileClick} />
-                  )}
-                  total={posts.length}
-                  switchTab="posts"
-                  onViewAll={() => setCurrentTab("posts")}
-                />
+                <div className="mt-6">
+                  <div className="px-4 pb-3 border-b border-[#333]">
+                    <h3 className="text-xl font-semibold text-white">Posts</h3>
+                  </div>
+                  <Section
+                    title="Posts"
+                    items={posts}
+                    renderItem={(post) => (
+                      <PostCard key={post.id} post={post} onProfileClick={onProfileClick} />
+                    )}
+                    total={posts.length}
+                    switchTab="posts"
+                    onViewAll={() => setCurrentTab("posts")}
+                  />
+                </div>
               )}
             </TabsContent>
 
-            <TabsContent value="users" className="mt-0">
+            <TabsContent value="users" className="mt-0 pt-0">
               {users.length > 0 ? (
                 users.map((user) => (
                   <UserCard key={user.id} user={user} onProfileClick={onProfileClick} />
@@ -133,7 +152,7 @@ export function SearchPage({ onProfileClick }) {
               )}
             </TabsContent>
 
-            <TabsContent value="posts" className="mt-0">
+            <TabsContent value="posts" className="mt-0 pt-0">
               {posts.length > 0 ? (
                 posts.map((post) => (
                   <PostCard key={post.id} post={post} onProfileClick={onProfileClick} />
@@ -170,15 +189,12 @@ function NoData({ text }) {
 function Section({ title, items, renderItem, total, onViewAll }) {
   return (
     <div>
-      <div className="p-4 border-b border-border">
-        <h3 className="text-sm text-muted-foreground">{title}</h3>
-      </div>
       {items.slice(0, 3).map(renderItem)}
       {items.length > 3 && (
-        <div className="p-4 border-b border-border text-center">
+        <div className="px-4 py-3 border-t border-[#333]">
           <Button
-            variant="link"
-            className="text-muted-foreground"
+            variant="ghost"
+            className="w-full text-gray-400 hover:text-white text-sm font-medium"
             onClick={onViewAll}
           >
             View all {total} {title.toLowerCase()}

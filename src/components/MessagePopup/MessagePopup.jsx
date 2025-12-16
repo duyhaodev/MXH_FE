@@ -1,19 +1,48 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageCircle, Maximize2, X, Edit3 } from "lucide-react";
-import { mockMessages } from "../../data/mockData";
+import { useSelector } from "react-redux";
 
 export function MessagePopup() {
   const [isOpen, setIsOpen] = useState(false);
-  const unreadCount = mockMessages.filter(msg => msg.unread).length;
   const navigate = useNavigate();
+  
+  // Get data from Redux Store
+  const { conversations, loading } = useSelector((state) => state.chat);
+
+  // Calculate unread count from Redux data
+  const unreadCount = conversations.filter(c => c.unread).length;
+
+  // Format time helper (simplified version)
+  const formatTimeAgo = (input) => {
+    if (!input) return "";
+    const d = new Date(input);
+    if (isNaN(d.getTime())) return input;
+
+    const sec = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (sec < 60) return "vài giây trước";
+    const mins = Math.floor(sec / 60);
+    if (mins < 60) return `${mins} phút trước`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} ${hours === 1 ? "tiếng" : "tiếng"} trước`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} ngày trước`;
+    const weeks = Math.floor(days / 7);
+    if (weeks < 4) return `${weeks} tuần trước`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months} tháng trước`;
+    const years = Math.floor(days / 365);
+    return `${years} năm trước`;
+  };
 
   const handleOpenFullPage = () => {
-    // Close the popup and navigate to the full messages page
     setIsOpen(false);
-    // Pass state so the MessagesPage knows it was opened from the popup and
-    // can show a back button if desired.
     navigate('/messages', { state: { fromPopup: true } });
+  };
+
+  const handleConversationClick = (conv) => {
+    setIsOpen(false);
+    navigate('/messages', { state: { fromPopup: true, selectedId: conv.id } });
   };
 
   return (
@@ -28,21 +57,19 @@ export function MessagePopup() {
             <div className="relative">
               <MessageCircle className="w-5 h-5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {unreadCount}
-                </span>
+                <div className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full" />
               )}
             </div>
             <span className="font-medium">Tin nhắn</span>
             
-            {/* Recent avatars */}
+            {/* Recent avatars (taking top 3 from Redux data) */}
             <div className="flex -space-x-2">
-              {mockMessages.slice(0, 3).map((msg, index) => (
+              {conversations.slice(0, 3).map((conv, index) => (
                 <img
-                  key={msg.id}
-                  src={msg.user.avatar}
-                  alt={msg.user.displayName}
-                  className="w-6 h-6 rounded-full border-2 border-[#1a1a1a]"
+                  key={conv.id}
+                  src={conv.conversationAvatar || "https://github.com/shadcn.png"} // Fallback
+                  alt={conv.conversationName}
+                  className="w-6 h-6 rounded-full border-2 border-[#1a1a1a] object-cover"
                   style={{ zIndex: 3 - index }}
                 />
               ))}
@@ -59,9 +86,7 @@ export function MessagePopup() {
             <div className="flex items-center gap-2">
               <h3 className="font-semibold">Tin nhắn</h3>
               {unreadCount > 0 && (
-                <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-                  {unreadCount}
-                </span>
+                <div className="w-2 h-2 bg-blue-500 rounded-full" />
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -83,43 +108,52 @@ export function MessagePopup() {
 
           {/* Messages List */}
           <div className="flex-1 overflow-y-auto">
-            {mockMessages.map((message) => (
-              <div
-                key={message.id}
-                className="flex items-start gap-3 p-4 hover:bg-[#1f1f1f] cursor-pointer transition-colors border-b border-[#252525]"
-              >
-                <div className="relative">
-                  <img
-                    src={message.user.avatar}
-                    alt={message.user.displayName}
-                    className="w-12 h-12 rounded-full"
-                  />
-                  {message.unread && (
-                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-blue-500 rounded-full border-2 border-[#181818]" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="font-medium text-sm truncate">
-                      {message.user.displayName}
-                    </p>
-                    {message.timestamp && (
-                      <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
-                        · {message.timestamp}
-                      </span>
-                    )}
+            {loading ? (
+                <div className="flex items-center justify-center h-full text-gray-500">Đang tải...</div>
+            ) : conversations.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-gray-500 text-sm">Chưa có tin nhắn nào</div>
+            ) : (
+                conversations.map((conv) => (
+                  <div
+                    key={conv.id}
+                    onClick={() => handleConversationClick(conv)}
+                    className="flex items-start gap-3 p-4 hover:bg-[#1f1f1f] cursor-pointer transition-colors border-b border-[#252525]"
+                  >
+                    <div className="relative">
+                      <img
+                        src={conv.conversationAvatar || "https://github.com/shadcn.png"}
+                        alt={conv.conversationName}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                      {conv.unread && (
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-blue-500 rounded-full border-2 border-[#181818]" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-medium text-sm truncate">
+                          {conv.conversationName}
+                        </p>
+                        {conv.timestamp && (
+                          <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
+                            {formatTimeAgo(conv.timestamp)}
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-sm truncate ${conv.unread ? 'text-white font-medium' : 'text-muted-foreground'}`}>
+                        {conv.lastMessage}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {message.lastMessage}
-                  </p>
-                </div>
-              </div>
-            ))}
+                ))
+            )}
           </div>
 
           {/* Compose Button */}
           <div className="p-4 border-t border-[#333]">
-            <button className="w-full bg-white hover:bg-gray-200 text-black rounded-lg py-2.5 flex items-center justify-center gap-2 transition-colors">
+            <button 
+                onClick={handleOpenFullPage}
+                className="w-full bg-white hover:bg-gray-200 text-black rounded-lg py-2.5 flex items-center justify-center gap-2 transition-colors">
               <Edit3 className="w-4 h-4" />
               <span className="font-medium">Soạn tin nhắn</span>
             </button>
