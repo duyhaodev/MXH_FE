@@ -194,7 +194,9 @@ export function SearchPage() {
             <TabsContent value="posts" className="mt-0">
               {posts.length > 0 ? (
                 posts.map((post) => (
-                  <PostCard key={post.id} post={post} onProfileClick={onProfileClick} />
+                  <PostCard key={post.id} post={post}
+                            onProfileClick={onProfileClick} 
+                            onPostClick={(id) => navigate(`/post/${id}`)} />
                 ))
               ) : (
                 <NoData text="No posts found" />
