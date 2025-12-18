@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import {formatTimeAgo} from "../../utils/dateUtils.js"
 
 
 export function PostCard({ post, onProfileClick, onPostClick }) {
@@ -345,7 +346,7 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
               className="text-muted-foreground"
               title={createdAt ? new Date(createdAt).toLocaleString() : ""}
             >
-              {relative}
+              {formatTimeAgo(createdAt)}
             </span>
             {/* More menu */}
             <div className="ml-auto">

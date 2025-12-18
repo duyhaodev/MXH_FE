@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Search, ChevronLeft } from "lucide-react";
 import { Spinner } from "../../../components/ui/spinner";
 import { searchApi } from "../../../api/searchApi";
+import {formatTimeAgo} from "../../../utils/dateUtils"
 
 export function ConversationSidebar({
   conversations,
@@ -16,28 +17,6 @@ export function ConversationSidebar({
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const searchInputRef = useRef(null);
-
-  // Helper: format a date (ISO or Date) into relative Vietnamese time
-  const formatTimeAgo = (input) => {
-    if (!input) return "";
-    const d = new Date(input);
-    if (isNaN(d.getTime())) return input;
-
-    const sec = Math.floor((Date.now() - d.getTime()) / 1000);
-    if (sec < 60) return "vài giây trước";
-    const mins = Math.floor(sec / 60);
-    if (mins < 60) return `${mins} phút trước`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours} ${hours === 1 ? "tiếng" : "tiếng"} trước`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days} ngày trước`;
-    const weeks = Math.floor(days / 7);
-    if (weeks < 4) return `${weeks} tuần trước`;
-    const months = Math.floor(days / 30);
-    if (months < 12) return `${months} tháng trước`;
-    const years = Math.floor(days / 365);
-    return `${years} năm trước`;
-  };
 
   useEffect(() => {
     const fetchData = async () => {

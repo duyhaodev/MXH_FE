@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { ImageViewer } from "@/components/ImageViewer/ImageViewer.jsx";
 import { fetchCommentsByPost, createComment as createCommentThunk, selectCommentsByPostId, selectCommentsLoadingByPostId, selectCommentsErrorByPostId, selectCommentSubmittingByPostId, selectCommentsPageByPostId, selectCommentsHasMoreByPostId, } from "@/store/commentsSlice";
 import { toggleCommentLike } from "@/store/commentsSlice";
+import {formatTimeAgo} from "../../utils/dateUtils.js"
 
 const PAGE_SIZE = 10;
 export function PostComments({ postId, onProfileClick, onCommentCreated }) {
@@ -35,16 +36,6 @@ export function PostComments({ postId, onProfileClick, onCommentCreated }) {
   const emojiRef = useRef(null);
   const loadMoreRef = useRef(null);
   const loadDelayRef = useRef(null); // delay trước khi load thêm
-
-  // FORMAT RELATIVE TIME
-  const formatRelativeTime = (createdAt) => {
-    if (!createdAt) return "now";
-    const diff = (Date.now() - new Date(createdAt)) / 60000;
-    if (diff < 1) return "now";
-    if (diff < 60) return `${Math.floor(diff)}m ago`;
-    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
-    return `${Math.floor(diff / 1440)}d ago`;
-  };
 
   // Build URL media
   const buildMediaUrl = (raw) => {
@@ -500,7 +491,7 @@ export function PostComments({ postId, onProfileClick, onCommentCreated }) {
                       @{c.userName}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      · {formatRelativeTime(c.createdAt)}
+                      · {formatTimeAgo(c.createdAt)}
                     </span>
                   </div>
 
