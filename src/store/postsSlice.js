@@ -169,6 +169,10 @@ const postsSlice = createSlice({
     postDetail: null,
     loadingPostDetail: false,
     postDetailError: null,
+
+    searchPosts: [],
+    loadingSearchPosts: false,
+    searchPostsError: null,
   },
   reducers: {
     resetFeed(state) {
@@ -201,8 +205,15 @@ const postsSlice = createSlice({
       state.userPosts.forEach(apply);
       state.myReposts.forEach(apply);
       state.userReposts.forEach(apply);
+      state.searchPosts.forEach(apply);
       if (state.postDetail) apply(state.postDetail);
     },
+
+    setSearchPosts(state, action) {
+      state.searchPosts = action.payload || [];
+      state.searchPostsError = null;
+    },
+
   },
   extraReducers: (builder) => {
     builder
@@ -253,6 +264,7 @@ const postsSlice = createSlice({
         state.userPosts = state.userPosts.filter((p) => !shouldRemove(p));
         state.myReposts = state.myReposts.filter((p) => !shouldRemove(p));
         state.userReposts = state.userReposts.filter((p) => !shouldRemove(p));
+        state.searchPosts = state.searchPosts.filter((p) => !shouldRemove(p));
 
         if (state.postDetail) {
           const detailOriginalId = state.postDetail.repostOfId ?? state.postDetail.id;
@@ -295,6 +307,8 @@ const postsSlice = createSlice({
         state.userPosts.forEach(bumpIfSameOriginal);
         state.myReposts.forEach(bumpIfSameOriginal);
         state.userReposts.forEach(bumpIfSameOriginal);
+        state.searchPosts.forEach(bumpIfSameOriginal);
+
       })
       .addCase(repostPost.rejected, (state, action) => {
         state.reposting = false;
@@ -327,11 +341,13 @@ const postsSlice = createSlice({
         state.userPosts.forEach(decIfSameOriginal);
         state.myReposts.forEach(decIfSameOriginal);
         state.userReposts.forEach(decIfSameOriginal);
+        state.searchPosts.forEach(decIfSameOriginal);
 
         if (repostId) {
           state.items = state.items.filter((p) => p.id !== repostId);
           state.myReposts = state.myReposts.filter((p) => p.id !== repostId);
           state.userReposts = state.userReposts.filter((p) => p.id !== repostId);
+          state.searchPosts = state.searchPosts.filter((p) => p.id !== repostId);
         }
       })
       .addCase(unrepostPost.rejected, (state, action) => {
@@ -426,7 +442,7 @@ const postsSlice = createSlice({
   },
 });
 
-export const { resetFeed, syncLikeByOriginalId} = postsSlice.actions;
+export const { resetFeed, syncLikeByOriginalId, setSearchPosts } = postsSlice.actions;
 export default postsSlice.reducer;
 
 // Selectors
@@ -457,4 +473,7 @@ export const selectPostDetail = (state) => state.posts.postDetail;
 export const selectPostDetailLoading = (state) => state.posts.loadingPostDetail;
 export const selectPostDetailError = (state) => state.posts.postDetailError;
 
+export const selectSearchPosts = (state) => state.posts.searchPosts;
+export const selectSearchPostsLoading = (state) => state.posts.loadingSearchPosts;
+export const selectSearchPostsError = (state) => state.posts.searchPostsError;
 

@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import commentApi from "@/api/commentApi";
+import likeApi from "../api/likeApi";
 
 export const fetchCommentsByPost = createAsyncThunk(
   "comments/fetchByPost",
@@ -31,6 +32,24 @@ export const createComment = createAsyncThunk(
   }
 );
 
+export const toggleCommentLike = createAsyncThunk(
+  "comments/toggleCommentLike",
+  async ({ postId, commentId }, { rejectWithValue }) => {
+    try {
+      const res = await likeApi.toggleComment(commentId);
+      const data = res?.data || res;
+      return { postId, commentId, ...data }; // { postId, commentId, liked, likeCount }
+    } catch (err) {
+      return rejectWithValue({
+        postId,
+        message: err?.message || "Toggle like comment failed",
+      });
+    }
+  }
+);
+
+
+
 const initialState = {
   byPostId: {},            // { [postId]: Comment[] }
   loadingByPostId: {},     // { [postId]: boolean }
@@ -52,6 +71,17 @@ const commentsSlice = createSlice({
       delete state.submittingByPostId[postId];
       delete state.pageByPostId[postId];
       delete state.hasMoreByPostId[postId];
+    },
+    syncCommentLike(state, action) {
+      const { postId, commentId, liked, likeCount } = action.payload || {};
+      if (!postId || !commentId) return;
+
+      const list = state.byPostId?.[postId] || [];
+      const c = list.find((x) => x.id === commentId);
+      if (!c) return;
+
+      c.likedByCurrentUser = !!liked;
+      c.likeCount = likeCount ?? c.likeCount ?? 0;
     },
   },
   extraReducers: (builder) => {
@@ -101,11 +131,31 @@ const commentsSlice = createSlice({
           state.errorByPostId[postId] =
             action.payload?.message || "Create comment failed";
         }
+      })
+      
+      // ===== toggleCommentLike =====
+      .addCase(toggleCommentLike.fulfilled, (state, action) => {
+        const { postId, commentId, liked, likeCount } = action.payload || {};
+        if (!postId || !commentId) return;
+
+        const list = state.byPostId?.[postId] || [];
+        const c = list.find((x) => x.id === commentId);
+        if (c) {
+          c.likedByCurrentUser = !!liked;
+          c.likeCount = likeCount ?? c.likeCount ?? 0;
+        }
+      })
+      .addCase(toggleCommentLike.rejected, (state, action) => {
+        const postId = action.payload?.postId;
+        if (postId) {
+          state.errorByPostId[postId] =
+            action.payload?.message || "Toggle like comment failed";
+        }
       });
   },
 });
 
-export const { clearCommentsByPost } = commentsSlice.actions;
+export const { clearCommentsByPost, syncCommentLike } = commentsSlice.actions;
 export default commentsSlice.reducer;
 
 // ====== Selectors ======

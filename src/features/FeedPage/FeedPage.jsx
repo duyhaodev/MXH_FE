@@ -53,13 +53,6 @@ export function FeedPage() {
       .catch(() => toast.error("Không tải được feed"));
   }, [dispatch]);
 
-  const handleLoadMore = () => {
-    if (loading || !hasMore) return;
-    dispatch(fetchFeed({ page, size: 20 }))
-      .unwrap()
-      .catch(() => toast.error("Không tải được feed"));
-  };
-
   // Auto load
   useEffect(() => {
     if (!hasMore) return;
@@ -134,9 +127,7 @@ export function FeedPage() {
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
-
     setMediaFiles((prev) => [...prev, ...newItems]);
-
     // cho lần sau chọn lại cùng file
     if (fileInputRef.current) fileInputRef.current.value = "";
   };

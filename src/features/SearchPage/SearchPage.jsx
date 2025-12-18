@@ -10,10 +10,13 @@ import { searchApi } from "../../api/searchApi";
 import followApi from "../../api/followApi";
 import userApi from "../../api/userApi";
 import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
+import { setSearchPosts, selectSearchPosts } from "../../store/postsSlice";
 
 export function SearchPage() {
   const navigate = useNavigate();
-
+  const dispatch = useDispatch();
+  const posts = useSelector(selectSearchPosts);
   // States cho current user
   const [currentUser, setCurrentUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -49,7 +52,6 @@ export function SearchPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState([]);
-  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentTab, setCurrentTab] = useState("all");
 
@@ -57,7 +59,7 @@ export function SearchPage() {
     const fetchData = async () => {
       if (!searchQuery.trim()) {
         setUsers([]);
-        setPosts([]);
+        dispatch(setSearchPosts([]));
         return;
       }
 
@@ -75,16 +77,16 @@ export function SearchPage() {
               ? JSON.parse(p.mediaList)
               : (p.mediaList || [])
           }));
-          setPosts(normalizedPosts);
+          dispatch(setSearchPosts(normalizedPosts));
           setUsers(data.result.users || []);
         } else {
           setUsers([]);
-          setPosts([]);
+          dispatch(setSearchPosts([]));
         }
       } catch (err) {
         console.error("❌ Search error:", err);
         setUsers([]);
-        setPosts([]);
+        dispatch(setSearchPosts([]));
       } finally {
         setLoading(false);
       }
@@ -92,7 +94,7 @@ export function SearchPage() {
 
     const delay = setTimeout(fetchData, 400);
     return () => clearTimeout(delay);
-  }, [searchQuery]);
+  }, [searchQuery, dispatch]);
 
   const totalResults = users.length + posts.length;
 
@@ -166,7 +168,12 @@ export function SearchPage() {
                   title="Posts"
                   items={posts}
                   renderItem={(post) => (
-                    <PostCard key={post.id} post={post} onProfileClick={onProfileClick} />
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      onProfileClick={onProfileClick}
+                      onPostClick={(id) => navigate(`/post/${id}`)}
+                    />
                   )}
                   total={posts.length}
                   switchTab="posts"
@@ -194,7 +201,12 @@ export function SearchPage() {
             <TabsContent value="posts" className="mt-0">
               {posts.length > 0 ? (
                 posts.map((post) => (
-                  <PostCard key={post.id} post={post} onProfileClick={onProfileClick} />
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onProfileClick={onProfileClick}
+                    onPostClick={(id) => navigate(`/post/${id}`)}
+                  />
                 ))
               ) : (
                 <NoData text="No posts found" />
