@@ -37,7 +37,7 @@ export default function App() {
   if (isVerifyingToken) {
     return (
       <>
-        <Toaster richColors position="top-right" />
+          <Toaster richColors position="top-right" />
         <div className="min-h-screen flex items-center justify-center">
           <Spinner />
         </div>
@@ -47,7 +47,7 @@ export default function App() {
 
   return (
     <>
-      <Toaster richColors position="top-right" />
+        <Toaster richColors position="top-right" />
       <BrowserRouter>
         <Routes>
           {/* Public routes (Login, Register) - Redirect if authenticated */}

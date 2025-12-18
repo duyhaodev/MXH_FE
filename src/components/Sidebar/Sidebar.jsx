@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Home, Search, Heart, User, Edit, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button.js";
@@ -8,6 +9,7 @@ import { createPortal } from "react-dom";
 import { CreatePost } from "../CreatePost/CreatePost.jsx";
 import { Skeleton } from "../ui/skeleton.js";
 import { logoutUser } from "../../store/userSlice";
+import { fetchNotifications, selectUnreadCount } from "../../store/notificationsSlice";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +23,15 @@ export function Sidebar({ currentPage }) {
 
   const { profile, loading } = useSelector((state) => state.user);
   const open = useSelector(selectComposerOpen);       
-  const prefill = useSelector(selectComposerPrefill); 
+  const prefill = useSelector(selectComposerPrefill);
+  const unreadNotifications = useSelector(selectUnreadCount);
+
+  useEffect(() => {
+    // Fetch initial notifications to get unread count
+    if (profile) {
+      dispatch(fetchNotifications());
+    }
+  }, [dispatch, profile]);
 
   const menuItems = [
     { id: "feed", label: "Home", icon: Home, path: "/feed" },
@@ -128,11 +138,16 @@ export function Sidebar({ currentPage }) {
               <Button
                 key={item.id}
                 variant={isActive ? "secondary" : "ghost"}
-                className="w-full justify-start h-12 px-4"
+                className="w-full justify-start h-12 px-4 relative"
                 onClick={() => navigate(item.path)}
               >
-                <Icon className="w-6 h-6 mr-4" />
-                <span className="text-base">{item.label}</span>
+                <div className="relative">
+                  <Icon className={`w-6 h-6 mr-4 ${item.id === "activity" && isActive ? "fill-current" : ""}`} />
+                  {item.id === "activity" && unreadNotifications > 0 && (
+                    <span className="absolute top-0 right-3 block h-2.5 w-2.5 rounded-full ring-2 ring-background bg-blue-500 transform translate-x-1/2 -translate-y-1/2" />
+                  )}
+                </div>
+                <span className={`text-base ${isActive ? "font-semibold" : ""}`}>{item.label}</span>
               </Button>
             );
           })}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import {
   Heart,
   MessageCircle,
@@ -14,9 +15,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { toast } from "sonner";
 import notificationApi from "../../api/notificationApi";
+import { resetUnreadCount } from "../../store/notificationsSlice";
 
 export function ActivityPage() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const onProfileClick = (username) => {
     if (username) {
@@ -55,7 +58,9 @@ export function ActivityPage() {
 
   useEffect(() => {
     fetchActivities();
-  }, [fetchActivities]);
+    // Reset unread count when viewing activity page
+    dispatch(resetUnreadCount());
+  }, [fetchActivities, dispatch]);
 
   const replyActivities = useMemo(
     () => activities.filter((a) => a.type === "reply"),

@@ -3,7 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import { getToken } from '../api/localStorageService';
 import { receiveSocketMessage, markConversationRead } from '../store/chatSlice';
+import { receiveNotification } from '../store/notificationsSlice';
 import messageSound from '../assets/sounds/message-sound.wav';
+import notificationSound from '../assets/sounds/notification-sound.mp3';
+import { toast } from 'sonner';
 
 const SocketContext = createContext(null);
 
@@ -65,11 +68,33 @@ export const SocketProvider = ({ children }) => {
           audio.play().catch(e => console.warn("Audio play failed:", e));
         }
 
-        // Future: Handle Notification logic here
-        // dispatch(receiveNotification(message)); 
+
 
       } catch (error) {
         console.error("Socket message parse error:", error);
+      }
+    });
+
+    // Global Notification Listener
+    newSocket.on("new_notification", (dataStr) => {
+      try {
+        const notification = typeof dataStr === 'string' ? JSON.parse(dataStr) : dataStr;
+
+        // Play notification sound
+        const audio = new Audio(notificationSound);
+        audio.play().catch(e => console.warn("Audio play failed:", e));
+
+        // Dispatch to Redux
+        dispatch(receiveNotification(notification)); 
+
+        // Display toast notification
+        toast.info(notification.message, {
+          description: `from @${notification.user.username}`, // Optional: show who sent it
+          duration: 3000, // Show for 3 seconds
+        });
+
+      } catch (error) {
+        console.error("Socket notification parse error:", error);
       }
     });
 
