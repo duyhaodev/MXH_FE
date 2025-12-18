@@ -67,9 +67,6 @@ export const SocketProvider = ({ children }) => {
           const audio = new Audio(messageSound);
           audio.play().catch(e => console.warn("Audio play failed:", e));
         }
-
-
-
       } catch (error) {
         console.error("Socket message parse error:", error);
       }

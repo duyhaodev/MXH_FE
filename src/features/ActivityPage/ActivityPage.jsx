@@ -6,7 +6,6 @@ import {
   MessageCircle,
   Repeat2,
   UserPlus,
-  AtSign,
   Verified,
   Check,
 } from "lucide-react";
@@ -16,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/ta
 import { toast } from "sonner";
 import notificationApi from "../../api/notificationApi";
 import { resetUnreadCount } from "../../store/notificationsSlice";
+import { formatTimeAgo } from '../../utils/dateUtils';
 
 export function ActivityPage() {
   const navigate = useNavigate();
@@ -27,6 +27,12 @@ export function ActivityPage() {
     }
   };
 
+  const onPostClick = (postId) => {
+    if (postId) {
+      navigate(`/post/${postId}`);
+    }
+  };
+
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
@@ -34,9 +40,10 @@ export function ActivityPage() {
   // map tab -> backend type
   const typeMap = {
     all: "all",
-    replies: "reply",
-    mentions: "mention",
-    verified: "verified",
+    comments: "comment_post",
+    likes: "like_post",
+    reposts: "repost",
+    follows: "follow",
   };
 
   // Helper để fetch activities (tái sử dụng cho refetch)
@@ -62,18 +69,23 @@ export function ActivityPage() {
     dispatch(resetUnreadCount());
   }, [fetchActivities, dispatch]);
 
-  const replyActivities = useMemo(
-    () => activities.filter((a) => a.type === "reply"),
+  const commentActivities = useMemo(
+    () => activities.filter((a) => a.type === "comment_post"),
     [activities]
   );
 
-  const mentionActivities = useMemo(
-    () => activities.filter((a) => a.type === "mention"),
+  const likeActivities = useMemo(
+    () => activities.filter((a) => a.type === "like_post"),
     [activities]
   );
 
-  const verifiedActivities = useMemo(
-    () => activities.filter((a) => a.user?.verified),
+  const repostActivities = useMemo(
+    () => activities.filter((a) => a.type === "repost"),
+    [activities]
+  );
+
+  const followActivities = useMemo(
+    () => activities.filter((a) => a.type === "follow"),
     [activities]
   );
 
@@ -115,31 +127,38 @@ export function ActivityPage() {
           <TabsTrigger value="all" className="px-6 py-3">
             All
           </TabsTrigger>
-          <TabsTrigger value="replies" className="px-6 py-3">
-            Replies
+          <TabsTrigger value="comments" className="px-6 py-3">
+            Comments
           </TabsTrigger>
-          <TabsTrigger value="mentions" className="px-6 py-3">
-            Mentions
+          <TabsTrigger value="likes" className="px-6 py-3">
+            Likes
           </TabsTrigger>
-          <TabsTrigger value="verified" className="px-6 py-3">
-            Verified
+          <TabsTrigger value="reposts" className="px-6 py-3">
+            Reposts
+          </TabsTrigger>
+          <TabsTrigger value="follows" className="px-6 py-3">
+            Follows
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
-          {renderActivities(activities, onProfileClick, handleFollowBack)}
+          {renderActivities(activities, onProfileClick, onPostClick, handleFollowBack)}
         </TabsContent>
 
-        <TabsContent value="replies">
-          {renderActivities(replyActivities, onProfileClick, handleFollowBack)}
+        <TabsContent value="comments">
+          {renderActivities(commentActivities, onProfileClick, onPostClick, handleFollowBack)}
         </TabsContent>
 
-        <TabsContent value="mentions">
-          {renderActivities(mentionActivities, onProfileClick, handleFollowBack)}
+        <TabsContent value="likes">
+          {renderActivities(likeActivities, onProfileClick, onPostClick, handleFollowBack)}
         </TabsContent>
 
-        <TabsContent value="verified">
-          {renderActivities(verifiedActivities, onProfileClick, handleFollowBack)}
+        <TabsContent value="reposts">
+          {renderActivities(repostActivities, onProfileClick, onPostClick, handleFollowBack)}
+        </TabsContent>
+
+        <TabsContent value="follows">
+          {renderActivities(followActivities, onProfileClick, onPostClick, handleFollowBack)}
         </TabsContent>
       </Tabs>
     </div>
@@ -148,7 +167,7 @@ export function ActivityPage() {
 
 /* ================= Helpers ================= */
 
-function renderActivities(list, onProfileClick, onFollowBack) {
+function renderActivities(list, onProfileClick, onPostClick, onFollowBack) {
   if (!list.length) {
     return <EmptyState message="No activities yet" />;
   }
@@ -158,35 +177,31 @@ function renderActivities(list, onProfileClick, onFollowBack) {
       key={activity.id}
       activity={activity}
       onProfileClick={onProfileClick}
+      onPostClick={onPostClick}
       onFollowBack={onFollowBack}
     />
   ));
 }
 
-function ActivityItem({ activity, onProfileClick, onFollowBack }) {
+function ActivityItem({ activity, onProfileClick, onPostClick, onFollowBack }) {
   const iconMap = {
-    like: <Heart className="w-8 h-8 text-red-500 fill-red-500" />,
-    reply: <MessageCircle className="w-8 h-8 text-blue-500" />,
-    repost: <Repeat2 className="w-8 h-8 text-green-500" />,
-    follow: <UserPlus className="w-8 h-8 text-purple-500" />,
-    mention: <AtSign className="w-8 h-8 text-blue-500" />,
-    followed: <Check className="w-8 h-8 text-green-500" />,  // Icon mới cho trạng thái đã follow
+    like_post: <Heart className="w-4 h-4 text-red-500 fill-red-500" />,
+    comment_post: <MessageCircle className="w-4 h-4 text-blue-500" />,
+    repost: <Repeat2 className="w-4 h-4 text-green-500" />,
+    follow: <UserPlus className="w-4 h-4 text-purple-500" />,
   };
 
   // Kiểm tra trạng thái đã follow để ẩn button (ưu tiên từ backend)
   const isFollowed = activity.followed === true;
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
+  const dateText = formatTimeAgo(activity.timestamp);
 
-  const dateText = formatDate(activity.timestamp);
+  // Logic để chọn icon phù hợp
+  let icon = iconMap[activity.type];
 
+  // Kiểm tra nếu activity có postId để click xem chi tiết
+  const hasPostLink = activity.postId && (activity.type === "like_post" || activity.type === "comment_post" || activity.type === "repost");
+  console.log('Rendering activity:', activity);
   return (
     <div
       className={`border-b p-4 hover:bg-muted/50 transition-colors ${
@@ -194,21 +209,26 @@ function ActivityItem({ activity, onProfileClick, onFollowBack }) {
       }`}
     >
       <div className="flex items-start gap-3">
-        {iconMap[activity.type] || iconMap[isFollowed ? 'followed' : 'follow']}
-
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            {/* Avatar + click vào profile */}
-            <button
-              className="p-0 h-auto rounded-full"
-              onClick={() => onProfileClick?.(activity.user?.username)}
-              title={activity.user?.displayName}
-            >
-              <Avatar className="w-10 h-10">
-                <AvatarImage src={activity.user?.avatar} alt={activity.user?.displayName} />
-                <AvatarFallback>{activity.user?.displayName?.charAt(0) || "U"}</AvatarFallback>
-              </Avatar>
-            </button>
+          <div className="flex gap-3 mb-2">
+            {/* Avatar with icon badge */}
+            <div className="relative flex-shrink-0">
+              <button
+                className="p-0 h-auto rounded-full"
+                onClick={() => onProfileClick?.(activity.user?.username)}
+                title={activity.user?.displayName}
+              >
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={activity.user?.avatar} alt={activity.user?.displayName} />
+                  <AvatarFallback>{activity.user?.displayName?.charAt(0) || "U"}</AvatarFallback>
+                </Avatar>
+              </button>
+              {icon && (
+                <div className="absolute -bottom-0.5 -right-0.5 bg-background rounded-full p-0.5 border border-background shadow-sm">
+                  {icon}
+                </div>
+              )}
+            </div>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
@@ -228,9 +248,20 @@ function ActivityItem({ activity, onProfileClick, onFollowBack }) {
                 </span>
               </div>
 
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {activity.message}
-              </p>
+              {hasPostLink ? (
+                <button
+                  className="block w-full text-left hover:underline focus:outline-none"
+                  onClick={() => onPostClick?.(activity.postId)}
+                >
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {activity.message}
+                  </p>
+                </button>
+              ) : (
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {activity.message}
+                </p>
+              )}
             </div>
           </div>
         </div>
