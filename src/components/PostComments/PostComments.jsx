@@ -9,6 +9,7 @@ import EmojiPicker from "emoji-picker-react";
 import { toast } from "sonner";
 import { ImageViewer } from "@/components/ImageViewer/ImageViewer.jsx";
 import { fetchCommentsByPost, createComment as createCommentThunk, selectCommentsByPostId, selectCommentsLoadingByPostId, selectCommentsErrorByPostId, selectCommentSubmittingByPostId, selectCommentsPageByPostId, selectCommentsHasMoreByPostId, } from "@/store/commentsSlice";
+import { toggleCommentLike } from "@/store/commentsSlice";
 
 const PAGE_SIZE = 10;
 export function PostComments({ postId, onProfileClick, onCommentCreated }) {
@@ -150,6 +151,16 @@ export function PostComments({ postId, onProfileClick, onCommentCreated }) {
       toast.error(commentsError);
     }
   }, [commentsError]);
+
+  // ======== TOGGLE LIKE COMMENT ========
+  const handleToggleLikeComment = async (commentId) => {
+  if (!postId || !commentId) return;
+  try {
+    await dispatch(toggleCommentLike({ postId, commentId })).unwrap();
+  } catch (err) {
+    toast.error(err?.message || "Không thể thích bình luận");
+  }
+};
 
   // ======== CHỌN FILE + PREVIEW ========
   const handleCommentFilesChange = (e) => {
@@ -542,12 +553,14 @@ export function PostComments({ postId, onProfileClick, onCommentCreated }) {
                   )}
 
                   <div className="flex items-center gap-4 pt-2">
-                    <button className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                      Trả lời
-                    </button>
-                    <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 transition-colors">
-                      <Heart className="w-3 h-3" />
-                      <span>Thích</span>
+                    <button
+                      onClick={() => handleToggleLikeComment(c.id)}
+                      className={`flex items-center gap-1 text-xs transition-colors ${
+                        c.likedByCurrentUser ? "text-red-500" : "text-muted-foreground hover:text-red-500"
+                      }`}
+                    >
+                      <Heart className={`w-3 h-3 ${c.likedByCurrentUser ? "fill-red-500" : ""}`} />
+                      <span className="ml-1">{c.likeCount ?? 0}</span>
                     </button>
                   </div>
                 </div>
