@@ -38,7 +38,7 @@ export const SocketProvider = ({ children }) => {
     if (socket && socket.connected) return;
 
     // Initialize Socket
-    const newSocket = new io("https://5799b748a3db.ngrok-free.app", {
+    const newSocket = new io("http://localhost:8099", { //https://5799b748a3db.ngrok-free.app
         query: { token },
         transports: ['websocket'], // Force websocket for better performance
         reconnection: true,
