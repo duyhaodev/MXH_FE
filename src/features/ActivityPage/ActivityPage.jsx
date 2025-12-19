@@ -39,11 +39,11 @@ export function ActivityPage() {
 
   // map tab -> backend type
   const typeMap = {
-    all: "all",
-    comments: "comment_post",
-    likes: "like_post",
-    reposts: "repost",
-    follows: "follow",
+    all: ["all"],
+    comments: ["comment_post"],
+    likes: ["like_post", "like_comment"],
+    reposts: ["repost"],
+    follows: ["follow"],
   };
 
   // Helper để fetch activities (tái sử dụng cho refetch)
@@ -51,7 +51,7 @@ export function ActivityPage() {
     setLoading(true);
     try {
       const res = await notificationApi.getNotifications({
-        type: typeMap[tabType],
+        type: tabType === "likes" ? undefined : typeMap[tabType],
         limit: 20,
       });
       setActivities(res?.activities || []);
@@ -75,7 +75,7 @@ export function ActivityPage() {
   );
 
   const likeActivities = useMemo(
-    () => activities.filter((a) => a.type === "like_post"),
+    () => activities.filter((a) => a.type === "like_post" || a.type === "like_comment"),
     [activities]
   );
 
@@ -186,6 +186,7 @@ function renderActivities(list, onProfileClick, onPostClick, onFollowBack) {
 function ActivityItem({ activity, onProfileClick, onPostClick, onFollowBack }) {
   const iconMap = {
     like_post: <Heart className="w-4 h-4 text-red-500 fill-red-500" />,
+    like_comment: <Heart className="w-4 h-4 text-red-500 fill-red-500" />,
     comment_post: <MessageCircle className="w-4 h-4 text-blue-500" />,
     repost: <Repeat2 className="w-4 h-4 text-green-500" />,
     follow: <UserPlus className="w-4 h-4 text-purple-500" />,
@@ -200,7 +201,7 @@ function ActivityItem({ activity, onProfileClick, onPostClick, onFollowBack }) {
   let icon = iconMap[activity.type];
 
   // Kiểm tra nếu activity có postId để click xem chi tiết
-  const hasPostLink = activity.postId && (activity.type === "like_post" || activity.type === "comment_post" || activity.type === "repost");
+  const hasPostLink = activity.postId && (activity.type === "like_post" || activity.type === "comment_post" || activity.type === "repost" || activity.type === "like_comment");
   console.log('Rendering activity:', activity);
   return (
     <div
