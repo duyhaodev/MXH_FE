@@ -53,7 +53,7 @@ export function EditProfileDialog({ open, onOpenChange }) {
       if (avatarFile) formData.append("avatar", avatarFile);
 
       await userApi.editProfile(formData);
-      toast.success("Cập nhật hồ sơ thành công");
+      toast.success("Profile updated successfully");
 
       // cập nhật lại profile trong Redux
       dispatch(fetchMyInfo());
@@ -61,7 +61,7 @@ export function EditProfileDialog({ open, onOpenChange }) {
       onOpenChange?.(false);
     } catch (err) {
       console.error(err);
-      toast.error("Cập nhật hồ sơ thất bại");
+      toast.error("Profile update failed");
     } finally {
       setSubmitting(false);
     }
@@ -88,12 +88,12 @@ export function EditProfileDialog({ open, onOpenChange }) {
               className="px-2 font-semibold"
               onClick={() => onOpenChange?.(false)}
             >
-              Hủy
+              Cancel
             </Button>
 
             {/* Tiêu đề ở giữa */}
             <DialogTitle className="flex-1 text-center text-base font-semibold">
-              Chỉnh sửa hồ sơ
+              Edit Profile
             </DialogTitle>
 
             {/* Khối rỗng bên phải để cân với nút Hủy */}
@@ -110,7 +110,7 @@ export function EditProfileDialog({ open, onOpenChange }) {
             </Avatar>
             <div>
               <label className="text-sm font-medium block mb-1">
-                Ảnh đại diện
+                Avatar
               </label>
               <Input
                 type="file"
@@ -119,18 +119,18 @@ export function EditProfileDialog({ open, onOpenChange }) {
                 className="max-w-xs"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Chọn ảnh mới để thay avatar.
+                Select a new photo to change avatar.
               </p>
             </div>
           </div>
 
           {/* Full name */}
           <div className="space-y-1">
-            <label className="text-sm font-medium">Tên hiển thị</label>
+            <label className="text-sm font-medium">Display Name</label>
             <Input
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Tên hiển thị"
+              placeholder="Display Name"
             />
           </div>
 
@@ -141,13 +141,13 @@ export function EditProfileDialog({ open, onOpenChange }) {
               rows={3}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              placeholder="Giới thiệu ngắn về bạn"
+              placeholder="Short bio about yourself"
             />
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Đang lưu..." : "Lưu"}
+              {submitting ? "Saving..." : "Save"}
             </Button>
           </div>
         </form>

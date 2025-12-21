@@ -17,6 +17,7 @@ import { PostDetailPage } from "./features/PostDetailPage/PostDetailPage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import PublicRoute from "./components/PublicRoute.jsx";
 import { getToken } from "./api/localStorageService.js";
+import { VerifyAccountPage } from "./features/VerifyAccountPage/VerifyAccountPage.jsx";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -54,6 +55,7 @@ export default function App() {
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/verify" element = {<VerifyAccountPage/>} />
           </Route>
 
           {/* Protected Routes - Redirect to login if not authenticated */}

@@ -14,6 +14,18 @@ export const fetchNotifications = createAsyncThunk(
   }
 );
 
+export const markAllNotificationsRead = createAsyncThunk(
+  "notifications/markAllRead",
+  async (_, { rejectWithValue }) => {
+    try {
+      await notificationApi.markAllRead();
+      return; 
+    } catch (err) {
+      return rejectWithValue(err?.message || "Failed to mark all as read");
+    }
+  }
+);
+
 const notificationsSlice = createSlice({
   name: "notifications",
   initialState: {
@@ -55,6 +67,11 @@ const notificationsSlice = createSlice({
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(markAllNotificationsRead.fulfilled, (state) => {
+        state.unreadCount = 0;
+        // Optional: Đánh dấu tất cả local items là đã đọc để UI update style (mờ đi)
+        state.items.forEach(item => { item.read = true; });
       });
   },
 });

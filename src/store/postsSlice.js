@@ -10,7 +10,7 @@ export const fetchFeed = createAsyncThunk(
       const data = Array.isArray(res) ? res : [];
       return { page, size, data };
     } catch (err) {
-      return rejectWithValue(err?.message || "Load feed thất bại");
+      return rejectWithValue(err?.message || "Load feed failed");
     }
   }
 );
@@ -38,7 +38,7 @@ export const deletePost = createAsyncThunk(
       await postApi.deletePost(postId);
       return { postId };
     } catch (err) {
-      return rejectWithValue(err?.message || "Xóa bài viết thất bại");
+      return rejectWithValue(err?.message || "Delete post failed");
     }
   }
 );
@@ -51,7 +51,7 @@ export const repostPost = createAsyncThunk(
       const res = await postApi.repost(postId);
       return res; // PostResponse (bài repost mới)
     } catch (err) {
-      return rejectWithValue(err?.message || "Đăng lại bài viết thất bại");
+      return rejectWithValue(err?.message || "Repost failed");
     }
   }
 );
@@ -64,7 +64,7 @@ export const unrepostPost = createAsyncThunk(
       const res = await postApi.unrepost(postId);
       return { originalId: postId, repostId: res?.repostId };
     } catch (err) {
-      return rejectWithValue(err?.message || "Gỡ repost thất bại");
+      return rejectWithValue(err?.message || "Remove repost failed");
     }
   }
 );
@@ -237,7 +237,7 @@ const postsSlice = createSlice({
       })
       .addCase(fetchFeed.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Load feed thất bại";
+        state.error = action.payload || "Load feed failed";
       })
 
       // createPost
@@ -251,7 +251,7 @@ const postsSlice = createSlice({
       })
       .addCase(createPost.rejected, (state, action) => {
         state.creating = false;
-        state.error = action.payload?.message || "Đăng bài thất bại";
+        state.error = action.payload?.message || "Create post failed";
       })
       // deletePost
       .addCase(deletePost.fulfilled, (state, action) => {
@@ -274,7 +274,7 @@ const postsSlice = createSlice({
         }
       })
       .addCase(deletePost.rejected, (state, action) => {
-        state.error = action.payload || "Xóa bài viết thất bại";
+        state.error = action.payload || "Delete post failed";
       })
 
 
@@ -312,7 +312,7 @@ const postsSlice = createSlice({
       })
       .addCase(repostPost.rejected, (state, action) => {
         state.reposting = false;
-        state.error = action.payload || "Đăng lại bài viết thất bại";
+        state.error = action.payload || "Repost failed";
       })
 
       // unrepostPost
@@ -352,7 +352,7 @@ const postsSlice = createSlice({
       })
       .addCase(unrepostPost.rejected, (state, action) => {
         state.unreposting = false;
-        state.error = action.payload || "Gỡ repost thất bại";
+        state.error = action.payload || "Remove repost failed";
       })
 
 

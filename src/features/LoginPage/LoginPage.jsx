@@ -26,12 +26,16 @@ export function LoginPage() {
       // dispatch login thunk
       await dispatch(login(values)).unwrap();
       // login thành công -> fetchMyInfo is now dispatched inside the login thunk.
-      toast.success("Đăng nhập thành công!");
+      toast.success("Login successful!");
       navigate("/feed");
     } catch (error) {
-        console.error(error);
-        const message = error?.message || error?.detail || "Sai email hoặc mật khẩu";
-        toast.error(message);
+        if (error === "Your account is not verified. Please verify your email.") {
+          toast.error("Your account is not verified. Please verify your email.");
+          navigate("/verify", { state: { email } });
+        } else {
+          const message = error?.message || (typeof error === 'string' ? error : "Login failed. Please check your credentials.");
+          toast.error(message);
+        }
     } finally {
       setIsLoading(false);
     }

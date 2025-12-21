@@ -131,10 +131,10 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
   try {
     if (isReposted) {
       await dispatch(unrepostPost(id)).unwrap();
-      toast.success("Đã gỡ đăng lại bài viết");
+      toast.success("Post unreposted");
     } else {
       await dispatch(repostPost(id)).unwrap();
-      toast.success("Đã đăng lại bài viết");
+      toast.success("Post reposted");
     }
     setRepostMenuOpen(false);
   } catch (err) {
@@ -142,8 +142,8 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
 
     toast.error(
       isReposted
-        ? "Gỡ đăng lại thất bại, vui lòng thử lại"
-        : "Đăng lại thất bại, vui lòng thử lại"
+        ? "Unrepost failed, please try again"
+        : "Repost failed, please try again"
     );
   }
 };
@@ -154,11 +154,11 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
 
     try {
       await dispatch(deletePost(id)).unwrap();
-      toast.success("Đã xóa bài viết");
+      toast.success("Post deleted");
       setMoreMenuOpen(false);
     } catch (err) {
       console.error("Delete post failed:", err);
-      toast.error("Xóa bài viết thất bại, vui lòng thử lại");
+      toast.error("Failed to delete post, please try again");
     }
   };
 
@@ -375,7 +375,7 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
                       onClick={handleDeletePost}
                     >
                       <div className="flex items-center justify-between w-full">
-                        <span className="text-red-500">Xóa bài viết</span>
+                        <span className="text-red-500">Delete post</span>
                       </div>
                     </DropdownMenuItem>
                   )}
@@ -387,7 +387,7 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
                     }}
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-white">Sao chép liên kết</span>
+                      <span className="text-white">Copy link</span>
                     </div>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -598,7 +598,7 @@ export function PostCard({ post, onProfileClick, onPostClick }) {
                 >
                   <div className="flex items-center justify-between w-full">
                     <span className={isReposted ? "text-red-500" : "text-white"}>
-                      {isReposted ? "Gỡ đăng lại" : "Đăng lại"}
+                      {isReposted ? "Remove Repost" : "Repost"}
                     </span>
                     <Repeat2
                       className={`w-4 h-4 ${

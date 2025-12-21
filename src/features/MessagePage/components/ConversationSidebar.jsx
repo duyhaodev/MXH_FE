@@ -73,7 +73,7 @@ export function ConversationSidebar({
           <input
             ref={searchInputRef}
             type="text"
-            placeholder="Tìm kiếm"
+            placeholder="Search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#555]"
@@ -85,7 +85,7 @@ export function ConversationSidebar({
               {searchLoading ? (
                 <div className="p-3 flex items-center gap-2 text-sm text-gray-400">
                   <Spinner className="w-4 h-4 text-gray-400" />
-                  <span>Đang tìm kiếm...</span>
+                  <span>Searching ...</span>
                 </div>
               ) : searchResults && searchResults.length > 0 ? (
                 searchResults.map((user) => (
@@ -119,7 +119,7 @@ export function ConversationSidebar({
                 ))
               ) : (
                 <div className="p-3 text-sm text-gray-500">
-                  Không tìm thấy người dùng
+                  User not found
                 </div>
               )}
             </div>

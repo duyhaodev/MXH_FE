@@ -17,6 +17,11 @@ const notificationApi = {
   followBack: (notificationId) => {
     return axios.post(`/api/notifications/follow-back/${notificationId}`);
   },
+
+  // Đánh dấu tất cả thông báo là đã đọc
+  markAllRead: () => {
+    return axios.patch("/api/notifications/read-all");
+  },
 };
 
 export default notificationApi;

@@ -33,10 +33,10 @@ export function RegisterPage() {
       console.log("Register response:", res);
 
       if (res?.code === 1000) {
-        toast.success("Đăng ký thành công! Hãy đăng nhập.");
-        navigate("/login");
+        toast.success("Registration successful! Please check your email for the verification code.");
+        navigate("/verify", { state: { email: values.email } });
       } else {
-        toast.error(res?.message || "Đăng ký thất bại");
+        toast.error(res?.message || "Registration failed. Please try again.");
       }
     } catch (error) {
       toast.error(error.message);
@@ -67,6 +67,7 @@ export function RegisterPage() {
                 <Input
                   id="username"
                   name="username"
+                  placeholder="Enter your user name"
                   value={userName}
                   onChange={(e) => setUsername(e.target.value)}
                   autoComplete="off"
@@ -79,6 +80,7 @@ export function RegisterPage() {
                 <Input
                   id="fullname"
                   fullname="fullname"
+                  placeholder="Enter your full name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   autoComplete="off"

@@ -50,7 +50,7 @@ export function FeedPage() {
   useEffect(() => {
     dispatch(fetchFeed({ page: 0, size: 20 }))
       .unwrap()
-      .catch(() => toast.error("Không tải được feed"));
+      .catch(() => toast.error("Failed to load feed"));
   }, [dispatch]);
 
   // Auto load
@@ -72,7 +72,7 @@ export function FeedPage() {
         loadDelayRef.current = setTimeout(() => {
           dispatch(fetchFeed({ page, size: 20 }))
             .unwrap()
-            .catch(() => toast.error("Không tải được feed"));
+            .catch(() => toast.error("Failed to load feed"));
           loadDelayRef.current = null;
         }, 300);
       },
@@ -111,7 +111,7 @@ export function FeedPage() {
       const isImage = type.startsWith("image/");
       const isVideo = type.startsWith("video/");
       if (!isImage && !isVideo) {
-        toast.error(`File "${file.name}" không phải hình hoặc video, bỏ qua.`);
+        toast.error(`File "${file.name}" is not an image or video, skipped.`);
         continue;
       }
       const previewUrl = URL.createObjectURL(file);
@@ -217,11 +217,11 @@ export function FeedPage() {
 
     const action = await dispatch(createPost(fd));
     if (createPost.fulfilled.match(action)) {
-      toast.success("Đăng bài thành công");
+      toast.success("Posted successfully");
       setNewPost("");
       handleRemoveAll();
     } else {
-      toast.error(action.payload?.message || "Đăng bài thất bại");
+      toast.error(action.payload?.message || "Post failed");
     }
   };
 
@@ -275,14 +275,14 @@ export function FeedPage() {
               <div className="mt-3 space-y-2">
                 <div className="flex justify-between items-center px-1">
                   <span className="text-xs text-muted-foreground">
-                    {mediaFiles.length} media đã chọn
+                    {mediaFiles.length} media selected
                   </span>
                   <button
                     type="button"
                     onClick={handleRemoveAll}
                     className="text-xs text-red-400 hover:underline"
                   >
-                    Gỡ tất cả
+                    Remove all
                   </button>
                 </div>
 
@@ -303,7 +303,7 @@ export function FeedPage() {
                           type="button"
                           onClick={() => handleRemoveOne(idx)}
                           className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 rounded-full p-1"
-                          title="Gỡ media"
+                          title="Remove media"
                         >
                           <X className="w-4 h-4 text-white" />
                         </button>
@@ -398,7 +398,7 @@ export function FeedPage() {
                   disabled={creating || (!newPost.trim() && mediaFiles.length === 0)}
                   size="sm"
                 >
-                  {creating ? "Đang đăng..." : "Post"}
+                  {creating ? "Posting..." : "Post"}
                 </Button>
               </div>
             </div>
@@ -443,11 +443,11 @@ export function FeedPage() {
       {/* Load More (infinite scroll) */}
       <div className="p-4 text-center">
         {loading && hasMore && (
-          <span className="text-muted-foreground text-sm">Đang tải...</span>
+          <span className="text-muted-foreground text-sm">Loading...</span>
         )}
         {hasMore && <div ref={loadMoreRef} className="h-1" />}
         {!hasMore && !loading && (
-          <span className="text-muted-foreground text-sm">Hết bài</span>
+          <span className="text-muted-foreground text-sm">No more posts</span>
         )}
       </div>
     </div>

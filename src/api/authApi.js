@@ -19,6 +19,16 @@ const authApi = {
     logout (token) {
         const url = "auth/logout";
         return axiosClient.post(url, {token})
+    },
+
+    verify (email, code) {
+        const url = `users/verify?email=${email}&code=${code}`;
+        return axiosClient.post(url);
+    },
+
+    resendOtp(email) {
+        const url = `users/resend-otp?email=${email}`;
+        return axiosClient.post(url);
     }
 }
 

@@ -56,7 +56,7 @@ export function CreatePost({ open, onOpenChange }) {
       const isVideo = type.startsWith("video/");
 
       if (!isImage && !isVideo) {
-        toast.error(`File "${file.name}" không phải hình hoặc video. Vui lòng chọn lại.`);
+        toast.error(`File "${file.name}" is not an image or video. Please select again.`);
         continue;
       }
 
@@ -108,13 +108,13 @@ export function CreatePost({ open, onOpenChange }) {
 
     const action = await dispatch(createPost(fd));
     if (createPost.fulfilled.match(action)) {
-      toast.success("Đăng bài thành công!");
+      toast.success("Posted successfully!");
       setContent("");
       handleRemoveAll();
       setEmojiOpen(false);
       onOpenChange(false);
     } else {
-      toast.error(action.payload?.message || "Đăng bài thất bại!");
+      toast.error(action.payload?.message || "Post failed!");
     }
   };
 
@@ -201,7 +201,7 @@ export function CreatePost({ open, onOpenChange }) {
         </style>
 
         <DialogDescription id="dialog-description" className="sr-only">
-          Tạo thread mới với nội dung, emoji và các tùy chọn kiểm soát
+          Create new thread with content, emoji and control options
         </DialogDescription>
 
         {/* Header */}
@@ -214,9 +214,9 @@ export function CreatePost({ open, onOpenChange }) {
             }}
             className="h-auto p-0 hover:bg-transparent cursor-pointer"
           >
-            Hủy
+            Cancel
           </Button>
-          <h2 className="font-semibold">Thread mới</h2>
+          <h2 className="font-semibold">New thread</h2>
           <div className="w-16"></div>
         </div>
 
@@ -322,7 +322,7 @@ export function CreatePost({ open, onOpenChange }) {
                       onClick={handleRemoveAll}
                       className="text-xs text-red-400 hover:underline"
                     >
-                      Gỡ tất cả
+                      Remove all
                     </button>
                   </div>
 
@@ -343,7 +343,7 @@ export function CreatePost({ open, onOpenChange }) {
                             type="button"
                             onClick={() => handleRemoveOne(idx)}
                             className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 rounded-full p-1"
-                            title="Gỡ media"
+                            title="Remove media"
                           >
                             <X className="w-4 h-4 text-white" />
                           </button>
@@ -389,7 +389,7 @@ export function CreatePost({ open, onOpenChange }) {
             size="sm"
             className="px-6 cursor-pointer"
           >
-            {creating ? "Đang đăng..." : "Đăng"}
+            {creating ? "Posting..." : "Post"}
           </Button>
         </div>
       </DialogContent>

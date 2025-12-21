@@ -39,7 +39,7 @@ export function MessagePopup() {
                 <div className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full" />
               )}
             </div>
-            <span className="font-medium">Tin nhắn</span>
+            <span className="font-medium">Message</span>
             
             {/* Recent avatars (taking top 3 from Redux data) */}
             <div className="flex -space-x-2">
@@ -63,7 +63,7 @@ export function MessagePopup() {
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-[#333]">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold">Tin nhắn</h3>
+              <h3 className="font-semibold">Message</h3>
               {unreadCount > 0 && (
                 <div className="w-2 h-2 bg-blue-500 rounded-full" />
               )}

@@ -49,8 +49,12 @@ axiosClient.interceptors.response.use(
       window.location.href = "/login";
     }
 
+    if (error.response?.data) {
+        return Promise.reject(error.response.data);
+    }
+
     const message =
-      error.response?.data?.message || "Lỗi server, vui lòng thử lại sau!";
+      error.response?.data?.message || "Server error, please try again later!";
     return Promise.reject(new Error(message));  // Ném lỗi ra ngoài dưới dạng `Error(message)`
   }
 );
