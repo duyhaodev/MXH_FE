@@ -309,18 +309,12 @@ export function ProfilePage() {
 
       {/* Tabs Threads / Replies / Reposts */}
       <Tabs defaultValue="threads" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-12 bg-transparent border-b border-border rounded-none">
+        <TabsList className="grid w-full grid-cols-2 h-12 bg-transparent border-b border-border rounded-none">
           <TabsTrigger
             value="threads"
             className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
           >
             Threads
-          </TabsTrigger>
-          <TabsTrigger
-            value="replies"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
-          >
-            Replies
           </TabsTrigger>
           <TabsTrigger
             value="reposts"

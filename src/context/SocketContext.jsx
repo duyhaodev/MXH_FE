@@ -59,7 +59,6 @@ export const SocketProvider = ({ children }) => {
     newSocket.on("message", (messageStr) => {
       try {
         const message = JSON.parse(messageStr);
-        console.log("📩 Socket received message:", message);
         
         // Dispatch to Redux -> Updates MessagePage & Popup
         dispatch(receiveSocketMessage(message));

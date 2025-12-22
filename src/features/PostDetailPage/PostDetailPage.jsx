@@ -58,7 +58,7 @@ export function PostDetailPage() {
           <span className="font-semibold">Thread</span>
         </div>
         <div className="p-4 text-sm text-muted-foreground">
-          Không tìm thấy bài viết.
+          Post not found.
         </div>
       </div>
     );

@@ -4,7 +4,7 @@
   import "./index.css";
   import { Provider } from 'react-redux';
   import store from './app/store';
-  import { SocketProvider } from "./context/SocketContext.jsx";
+import { SocketProvider } from "./context/SocketContext.jsx";
   
   const rootElement = document.getElementById("root");
   if (rootElement) {
