@@ -57,7 +57,7 @@
       port: 3000,
       open: true,
     //   allowedHosts: [
-    //   '45963f11c832.ngrok-free.app'
+    //   '0f59744b7d60.ngrok-free.app'
     // ]
     },
   });

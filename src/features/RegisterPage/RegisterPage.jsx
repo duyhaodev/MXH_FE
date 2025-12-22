@@ -19,13 +19,10 @@ export function RegisterPage() {
     e.preventDefault();
 
     const values = {
-      userName,
       fullName,
       email,
       password
     };
-
-    console.log(username);
 
     try {
       setIsLoading(true);
@@ -62,19 +59,6 @@ export function RegisterPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4" >
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  name="username"
-                  placeholder="Enter your user name"
-                  value={userName}
-                  onChange={(e) => setUsername(e.target.value)}
-                  autoComplete="off"
-                  required
-                />
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="fullname">Full Name</Label>
                 <Input

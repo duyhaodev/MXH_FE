@@ -2,12 +2,13 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import { getToken } from '../api/localStorageService';
-import { receiveSocketMessage, markConversationRead } from '../store/chatSlice';
+import { receiveSocketMessage, markConversationRead, fetchConversations } from '../store/chatSlice';
 import { receiveNotification } from '../store/notificationsSlice';
 import { setOnlineUsers, updateUserStatus } from '../store/onlineUsersSlice';
 import messageSound from '../assets/sounds/message-sound.wav';
 import notificationSound from '../assets/sounds/notification-sound.mp3';
 import { toast } from 'sonner';
+import store from '../app/store';
 
 const SocketContext = createContext(null);
 
@@ -39,7 +40,7 @@ export const SocketProvider = ({ children }) => {
     if (socket && socket.connected) return;
 
     // Initialize Socket
-    const newSocket = new io("http://localhost:8099", { //https://5799b748a3db.ngrok-free.app
+    const newSocket = new io("http://localhost:8099", { //https://5799b748a3db.ngrok-free.app http://localhost:8099
         query: { token },
         transports: ['websocket'], // Force websocket for better performance
         reconnection: true,
@@ -58,12 +59,10 @@ export const SocketProvider = ({ children }) => {
 
     // --- Online Status Listeners ---
     newSocket.on("online_users_list", (userIds) => {
-      console.log("👥 Initial online users:", userIds);
       dispatch(setOnlineUsers(userIds));
     });
 
     newSocket.on("user_status_change", (data) => {
-      console.log("👤 User status change:", data);
       dispatch(updateUserStatus(data));
     });
 
@@ -74,6 +73,14 @@ export const SocketProvider = ({ children }) => {
         
         // Dispatch to Redux -> Updates MessagePage & Popup
         dispatch(receiveSocketMessage(message));
+
+        // Check if conversation exists in Redux Store
+        // If not, fetch conversations to sync (e.g. new conversation started by someone else)
+        const state = store.getState();
+        const exists = state.chat.conversations.some(c => c.id === message.conversationId);
+        if (!exists) {
+           dispatch(fetchConversations());
+        }
 
         // Play notification sound if message is incoming (not from me)
         const isMe = message.me || message.isMe;

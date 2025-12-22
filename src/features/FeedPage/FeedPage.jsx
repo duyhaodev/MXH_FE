@@ -355,7 +355,7 @@ export function FeedPage() {
 
                 {/* Emoji */}
                 <Popover>
-                  <PopoverTrigger>
+                  <PopoverTrigger asChild>
                     <Button
                       type="button"
                       variant="ghost"

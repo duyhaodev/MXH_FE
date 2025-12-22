@@ -1,16 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageCircle, Maximize2, X, Edit3 } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import {formatTimeAgo} from "../../utils/dateUtils.js"
 import { UserAvatar } from "../ui/user-avatar";
+import { fetchConversations } from "../../store/chatSlice";
 
 export function MessagePopup() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   
   // Get data from Redux Store
   const { conversations, loading } = useSelector((state) => state.chat);
+
+  // Load conversations on mount if empty
+  useEffect(() => {
+    if (conversations.length === 0 && !loading) {
+      dispatch(fetchConversations());
+    }
+  }, [dispatch, conversations.length, loading]);
 
   // Calculate unread count from Redux data
   const unreadCount = conversations.filter(c => c.unread).length;  
@@ -89,9 +98,9 @@ export function MessagePopup() {
           {/* Messages List */}
           <div className="flex-1 overflow-y-auto">
             {loading ? (
-                <div className="flex items-center justify-center h-full text-gray-500">Đang tải...</div>
+                <div className="flex items-center justify-center h-full text-gray-500">Loading...</div>
             ) : conversations.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-gray-500 text-sm">Chưa có tin nhắn nào</div>
+                <div className="flex items-center justify-center h-full text-gray-500 text-sm">No message</div>
             ) : (
                 conversations.map((conv) => (
                   <div
