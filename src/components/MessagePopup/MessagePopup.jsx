@@ -131,17 +131,7 @@ export function MessagePopup() {
                   </div>
                 ))
             )}
-          </div>
-
-          {/* Compose Button */}
-          <div className="p-4 border-t border-[#333]">
-            <button 
-                onClick={handleOpenFullPage}
-                className="w-full bg-white hover:bg-gray-200 text-black rounded-lg py-2.5 flex items-center justify-center gap-2 transition-colors">
-              <Edit3 className="w-4 h-4" />
-              <span className="font-medium">Soạn tin nhắn</span>
-            </button>
-          </div>
+          </div>     
         </div>
       )}
     </>

@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import { Phone, Video, Info, Smile, Mic, Image, Heart } from "lucide-react";
+import { Phone, Video, Info, Smile, Mic, Image, Heart, Send } from "lucide-react";
+import EmojiPicker from "emoji-picker-react";
 import { messageApi } from "../../../api/messageApi";
 import { Spinner } from "../../../components/ui/spinner";
 import { showUnderDevelopmentToast } from "../../../utils/commonUtils";
@@ -9,6 +10,10 @@ export function ChatWindow({ conversation, onSendMessageSuccess, incomingMessage
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [messageInput, setMessageInput] = useState("");
   const messagesEndRef = useRef(null);
+
+  // EMOJI STATE
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const emojiRef = useRef(null);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -30,6 +35,20 @@ export function ChatWindow({ conversation, onSendMessageSuccess, incomingMessage
       });
     }
   }, [incomingMessage, conversation]);
+
+  // EMOJI: Close when clicking outside
+  useEffect(() => {
+    if (!emojiOpen) return;
+
+    const handleClickOutside = (e) => {
+      if (emojiRef.current && !emojiRef.current.contains(e.target)) {
+        setEmojiOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [emojiOpen]);
 
   // Load messages when conversation changes
   useEffect(() => {
@@ -68,6 +87,10 @@ export function ChatWindow({ conversation, onSendMessageSuccess, incomingMessage
     fetchMessages();
   }, [conversation?.id]);
 
+  const handleEmojiClick = (emojiData) => {
+    setMessageInput((prev) => prev + emojiData.emoji);
+  };
+
   const handleSendMessage = async () => {
     const content = messageInput.trim();
     if (!content) return;
@@ -75,6 +98,7 @@ export function ChatWindow({ conversation, onSendMessageSuccess, incomingMessage
 
     try {
       setMessageInput(""); // Clear input immediately
+      setEmojiOpen(false); // Close emoji picker
 
       const res = await messageApi.sendMessage({
         conversationId: conversation.id,
@@ -222,11 +246,33 @@ export function ChatWindow({ conversation, onSendMessageSuccess, incomingMessage
             className="flex-1 bg-transparent border-none outline-none text-sm"
           />
           <div className="flex items-center gap-2">
+            <div className="relative flex" ref={emojiRef}>
+              <button
+                className="text-gray-400 hover:text-white transition-colors"
+                onClick={() => setEmojiOpen((v) => !v)}
+              >
+                <Smile className="w-5 h-5" />
+              </button>
+
+              {emojiOpen && (
+                <div className="absolute bottom-12 right-0 z-50 w-72 rounded-xl border border-gray-700 bg-[#111] shadow-lg">
+                  <EmojiPicker
+                    theme="dark"
+                    width="100%"
+                    height={400}
+                    emojiStyle="native"
+                    searchDisabled
+                    previewConfig={{ showPreview: false }}
+                    onEmojiClick={handleEmojiClick}
+                  />
+                </div>
+              )}
+            </div>
             <button className="text-gray-400 hover:text-white transition-colors" onClick={showUnderDevelopmentToast}>
               <Image className="w-5 h-5" />
             </button>
-            <button className="text-gray-400 hover:text-white transition-colors">
-              <Smile className="w-5 h-5" />
+            <button className="text-gray-400 hover:text-white transition-colors" onClick={handleSendMessage}>
+              <Send className="w-5 h-5" />
             </button>
           </div>
         </div>
