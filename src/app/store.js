@@ -5,6 +5,7 @@ import composerReducer from "../store/composerSlice";
 import chatReducer from "../store/chatSlice";
 import commentsReducer from "../store/commentsSlice";
 import notificationsReducer from "../store/notificationsSlice";
+import onlineUsersReducer from "../store/onlineUsersSlice";
 
 const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ const store = configureStore({
     chat: chatReducer,
     comments: commentsReducer,
     notifications: notificationsReducer,
+    onlineUsers: onlineUsersReducer,
   },
 });
 

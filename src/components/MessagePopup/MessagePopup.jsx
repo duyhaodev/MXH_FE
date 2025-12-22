@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MessageCircle, Maximize2, X, Edit3 } from "lucide-react";
 import { useSelector } from "react-redux";
 import {formatTimeAgo} from "../../utils/dateUtils.js"
+import { UserAvatar } from "../ui/user-avatar";
 
 export function MessagePopup() {
   const [isOpen, setIsOpen] = useState(false);
@@ -99,14 +100,15 @@ export function MessagePopup() {
                     className="flex items-start gap-3 p-4 hover:bg-[#1f1f1f] cursor-pointer transition-colors border-b border-[#252525]"
                   >
                     <div className="relative">
-                      <img
-                        src={conv.conversationAvatar || "https://github.com/shadcn.png"}
-                        alt={conv.conversationName}
-                        className="w-12 h-12 rounded-full object-cover"
+                      <UserAvatar 
+                        user={{
+                          id: conv.partnerId, 
+                          avatar: conv.conversationAvatar, 
+                          userName: conv.conversationName
+                        }} 
+                        avatarClassName="w-12 h-12"
                       />
-                      {conv.unread && (
-                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-blue-500 rounded-full border-2 border-[#181818]" />
-                      )}
+                      
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
@@ -123,6 +125,9 @@ export function MessagePopup() {
                         {conv.lastMessage}
                       </p>
                     </div>
+                    {conv.unread && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                      )}
                   </div>
                 ))
             )}

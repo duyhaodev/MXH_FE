@@ -4,6 +4,7 @@ import { io } from 'socket.io-client';
 import { getToken } from '../api/localStorageService';
 import { receiveSocketMessage, markConversationRead } from '../store/chatSlice';
 import { receiveNotification } from '../store/notificationsSlice';
+import { setOnlineUsers, updateUserStatus } from '../store/onlineUsersSlice';
 import messageSound from '../assets/sounds/message-sound.wav';
 import notificationSound from '../assets/sounds/notification-sound.mp3';
 import { toast } from 'sonner';
@@ -53,6 +54,17 @@ export const SocketProvider = ({ children }) => {
 
     newSocket.on("disconnect", () => {
       console.log("🔴 Socket Disconnected");
+    });
+
+    // --- Online Status Listeners ---
+    newSocket.on("online_users_list", (userIds) => {
+      console.log("👥 Initial online users:", userIds);
+      dispatch(setOnlineUsers(userIds));
+    });
+
+    newSocket.on("user_status_change", (data) => {
+      console.log("👤 User status change:", data);
+      dispatch(updateUserStatus(data));
     });
 
     // Global Message Listener

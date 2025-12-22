@@ -3,6 +3,7 @@ import { Search, ChevronLeft } from "lucide-react";
 import { Spinner } from "../../../components/ui/spinner";
 import { searchApi } from "../../../api/searchApi";
 import {formatTimeAgo} from "../../../utils/dateUtils"
+import { UserAvatar } from "../../../components/ui/user-avatar";
 
 export function ConversationSidebar({
   conversations,
@@ -94,19 +95,10 @@ export function ConversationSidebar({
                     onClick={() => handleSelectSearchResult(user)}
                     className="w-full text-left flex items-center gap-3 p-3 hover:bg-[#111111] transition-colors border-b border-[#0f0f0f]"
                   >
-                    {user.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt={user.fullName}
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white font-medium">
-                        {(user.fullName || user.userName || "")
-                          .charAt(0)
-                          .toUpperCase()}
-                      </div>
-                    )}
+                    <UserAvatar 
+                      user={{...user, avatar: user.avatarUrl}} 
+                      avatarClassName="w-8 h-8"
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate">
                         {user.fullName || user.userName}
@@ -160,6 +152,11 @@ export function ConversationSidebar({
                 }
               : item;
 
+            // Tìm đối tác chat (partnerId) để hiển thị status online
+            // Trong conversation 1-1 đơn giản này, ta có thể lấy từ item.participantIds hoặc tương tự
+            // Ở đây tôi giả định logic lấy ID đối phương:
+            const partnerId = item.partnerId || (item.user && item.user.id); 
+
             return (
               <div
                 key={id}
@@ -168,17 +165,14 @@ export function ConversationSidebar({
                   selectedId === id ? "bg-[#1a1a1a]" : "hover:bg-[#0f0f0f]"
                 }`}
               >
-                {avatar ? (
-                  <img
-                    src={avatar}
-                    alt={displayName}
-                    className="w-12 h-12 rounded-full flex-shrink-0 object-cover"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-gray-600 flex items-center justify-center text-white font-medium flex-shrink-0">
-                    {(displayName || "").charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <UserAvatar 
+                  user={{
+                    id: partnerId, // Cần ID để check online
+                    avatar: avatar,
+                    userName: displayName
+                  }}
+                  avatarClassName="w-12 h-12 flex-shrink-0"
+                />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <p className="font-medium text-sm truncate">

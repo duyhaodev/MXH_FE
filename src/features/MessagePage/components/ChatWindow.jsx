@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Phone, Video, Info, Smile, Mic, Image, Heart } from "lucide-react";
 import { messageApi } from "../../../api/messageApi";
 import { Spinner } from "../../../components/ui/spinner";
+import { showUnderDevelopmentToast } from "../../../utils/commonUtils";
 
 export function ChatWindow({ conversation, onSendMessageSuccess, incomingMessage }) {
   const [messages, setMessages] = useState([]);
@@ -130,20 +131,20 @@ export function ChatWindow({ conversation, onSendMessageSuccess, incomingMessage
             </h3>
             {!conversation && (
               <p className="text-xs text-gray-500">
-                Tìm người dùng để bắt đầu cuộc trò chuyện
+                Find user to start a new conversation
               </p>
             )}
           </div>
         </div>
         {conversation ? (
           <div className="flex items-center gap-2">
-            <button className="p-2 hover:bg-[#1a1a1a] rounded-lg transition-colors">
+            <button className="p-2 hover:bg-[#1a1a1a] rounded-lg transition-colors" onClick={showUnderDevelopmentToast}>
               <Phone className="w-5 h-5" />
             </button>
-            <button className="p-2 hover:bg-[#1a1a1a] rounded-lg transition-colors">
+            <button className="p-2 hover:bg-[#1a1a1a] rounded-lg transition-colors" onClick={showUnderDevelopmentToast}>
               <Video className="w-5 h-5" />
             </button>
-            <button className="p-2 hover:bg-[#1a1a1a] rounded-lg transition-colors">
+            <button className="p-2 hover:bg-[#1a1a1a] rounded-lg transition-colors" onClick={showUnderDevelopmentToast}>
               <Info className="w-5 h-5" />
             </button>
           </div>
@@ -199,9 +200,9 @@ export function ChatWindow({ conversation, onSendMessageSuccess, incomingMessage
           ))
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center text-gray-400 p-6">
-            <p className="mb-2 text-lg">Chưa có tin nhắn</p>
+            <p className="mb-2 text-lg">No messages found</p>
             <p className="mb-4 text-sm">
-              Cùng nhau bắt đầu cuộc trò chuyện mới nào.
+              Start a new conversation.
             </p>
           </div>
         )}
@@ -212,29 +213,20 @@ export function ChatWindow({ conversation, onSendMessageSuccess, incomingMessage
       {/* Message Input */}
       <div className="p-4 border-t border-[#333]">
         <div className="flex items-center gap-3 bg-[#1a1a1a] rounded-full px-4 py-2 border border-[#333]">
-          <button className="text-gray-400 hover:text-white transition-colors">
-            <Smile className="w-5 h-5" />
-          </button>
           <input
             type="text"
-            placeholder="Nhắn tin..."
+            placeholder="Messaging ..."
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
             className="flex-1 bg-transparent border-none outline-none text-sm"
           />
           <div className="flex items-center gap-2">
-            <button className="text-gray-400 hover:text-white transition-colors">
-              <Mic className="w-5 h-5" />
-            </button>
-            <button className="text-gray-400 hover:text-white transition-colors">
+            <button className="text-gray-400 hover:text-white transition-colors" onClick={showUnderDevelopmentToast}>
               <Image className="w-5 h-5" />
             </button>
             <button className="text-gray-400 hover:text-white transition-colors">
               <Smile className="w-5 h-5" />
-            </button>
-            <button className="text-gray-400 hover:text-white transition-colors">
-              <Heart className="w-5 h-5" />
             </button>
           </div>
         </div>
