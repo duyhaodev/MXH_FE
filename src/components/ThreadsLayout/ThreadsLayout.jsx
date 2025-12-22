@@ -4,6 +4,8 @@ import { MessagePopup } from "../MessagePopup/MessagePopup";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchConversations } from "../../store/chatSlice";
+import tomImage from "../../assets/imgs/tom.jpg";  
+import jerryImage from "../../assets/imgs/jerry.jpg";  
 
 export function ThreadsLayout() {
   const location = useLocation();
@@ -30,20 +32,20 @@ export function ThreadsLayout() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full"></div>
+                  <img src={tomImage} alt="Tom" className="w-8 h-8 rounded-full object-cover" />
                   <div>
-                    <p className="font-medium text-sm">John Doe</p>
-                    <p className="text-xs text-muted-foreground">@johndoe</p>
+                    <p className="font-medium text-sm">Tom Cat</p>
+                    <p className="text-xs text-muted-foreground">@tomthecat</p>
                   </div>
                 </div>
                 <button className="text-sm text-blue-500 hover:underline">Follow</button>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-teal-600 rounded-full"></div>
+                  <img src={jerryImage} alt="Jerry" className="w-8 h-8 rounded-full object-cover" />
                   <div>
-                    <p className="font-medium text-sm">Jane Smith</p>
-                    <p className="text-xs text-muted-foreground">@janesmith</p>
+                    <p className="font-medium text-sm">Jerry Mouse</p>
+                    <p className="text-xs text-muted-foreground">@jerrythemouse</p>
                   </div>
                 </div>
                 <button className="text-sm text-blue-500 hover:underline">Follow</button>
@@ -55,14 +57,14 @@ export function ThreadsLayout() {
             <h3 className="font-semibold mb-3">What's happening</h3>
             <div className="space-y-3">
               <div>
-                <p className="text-sm text-muted-foreground">Trending in Technology</p>
-                <p className="font-medium">#ReactJS</p>
-                <p className="text-xs text-muted-foreground">45.2K threads</p>
+                <p className="text-sm text-muted-foreground">Very popular</p>
+                <p className="font-medium">#MeoCam</p>
+                <p className="text-xs text-muted-foreground">45.2K posts</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Trending</p>
                 <p className="font-medium">#WebDevelopment</p>
-                <p className="text-xs text-muted-foreground">28.1K threads</p>
+                <p className="text-xs text-muted-foreground">28.1K posts</p>
               </div>
             </div>
           </div>

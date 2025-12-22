@@ -29,6 +29,16 @@ const authApi = {
     resendOtp(email) {
         const url = `users/resend-otp?email=${email}`;
         return axiosClient.post(url);
+    },
+
+    forgotPassword(email) {
+        const url = `users/forgot-password?email=${email}`;
+        return axiosClient.post(url);
+    },
+
+    resetPassword(email, otp, newPassword) {
+        const url = `users/reset-password?email=${email}&otp=${otp}`;
+        return axiosClient.post(url, { password: newPassword });
     }
 }
 

@@ -105,7 +105,11 @@ export function LoginPage() {
             </div>
 
             <div className="mt-4 text-center">
-              <Button variant="link" className="p-0 h-auto text-sm">
+              <Button 
+                variant="link" 
+                className="p-0 h-auto text-sm"
+                onClick={() => navigate("/forgot-password")}
+              >
                 Forgot password?
               </Button>
             </div>
