@@ -95,6 +95,7 @@ export function PostComments({ postId, onProfileClick, onCommentCreated }) {
     if (!postId) return;
     if (!hasMoreComments) return;
     if (loadingComments) return;
+    if (commentsError) return;
 
     const el = loadMoreRef.current;
     if (!el) return;
@@ -103,7 +104,7 @@ export function PostComments({ postId, onProfileClick, onCommentCreated }) {
       (entries) => {
         const entry = entries[0];
         if (!entry.isIntersecting) return;
-        if (loadingComments || !hasMoreComments) return;
+        if (loadingComments || !hasMoreComments || commentsError) return;
 
         // nếu đang chờ load rồi thì không set thêm
         if (loadDelayRef.current) return;
@@ -134,7 +135,7 @@ export function PostComments({ postId, onProfileClick, onCommentCreated }) {
         loadDelayRef.current = null;
       }
     };
-  }, [postId, hasMoreComments, loadingComments, commentsPage, dispatch]);
+  }, [postId, hasMoreComments, loadingComments, commentsPage, dispatch, commentsError]);
 
   // Hiện toast khi lỗi load comment
   useEffect(() => {
@@ -565,7 +566,7 @@ export function PostComments({ postId, onProfileClick, onCommentCreated }) {
                   <Spinner />
                 </div>
               )}
-              {hasMoreComments && <div ref={loadMoreRef} className="h-1" />}
+              {hasMoreComments && !commentsError && <div ref={loadMoreRef} className="h-1" />}
             </div>
           </div>
         )}

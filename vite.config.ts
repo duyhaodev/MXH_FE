@@ -57,7 +57,10 @@
       port: 3000,
       open: true,
     //   allowedHosts: [
-    //   '0f59744b7d60.ngrok-free.app'
-    // ]
+    //   'b27a166d5f74.ngrok-free.app'
+    // ],
+    //   hmr: {
+    //   clientPort: 443
+    // }
     },
   });

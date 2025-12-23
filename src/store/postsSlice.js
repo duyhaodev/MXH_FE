@@ -223,7 +223,7 @@ const postsSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchFeed.fulfilled, (state, action) => {
-        const { page, data } = action.payload;
+        const { page, size, data } = action.payload;
         const sorted = data.slice().sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
@@ -234,6 +234,13 @@ const postsSlice = createSlice({
         }
         state.page = page + 1;
         state.loading = false;
+
+        // Nếu số lượng bài trả về ít hơn size yêu cầu, tức là đã hết bài
+        if (data.length < size) {
+          state.hasMore = false;
+        } else {
+          state.hasMore = true;
+        }
       })
       .addCase(fetchFeed.rejected, (state, action) => {
         state.loading = false;

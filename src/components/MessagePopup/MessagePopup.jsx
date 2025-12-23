@@ -12,14 +12,14 @@ export function MessagePopup() {
   const dispatch = useDispatch();
   
   // Get data from Redux Store
-  const { conversations, loading } = useSelector((state) => state.chat);
+  const { conversations, loading, isFetched } = useSelector((state) => state.chat);
 
   // Load conversations on mount if empty
   useEffect(() => {
-    if (conversations.length === 0 && !loading) {
+    if (!isFetched && !loading) {
       dispatch(fetchConversations());
     }
-  }, [dispatch, conversations.length, loading]);
+  }, [dispatch, isFetched, loading]);
 
   // Calculate unread count from Redux data
   const unreadCount = conversations.filter(c => c.unread).length;  

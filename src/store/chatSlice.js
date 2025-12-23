@@ -41,6 +41,7 @@ const chatSlice = createSlice({
   initialState: {
     conversations: [],
     loading: false,
+    isFetched: false,
     error: null,
     selectedConversationId: null,
     latestMessage: null, // Track the newest incoming message object
@@ -109,10 +110,12 @@ const chatSlice = createSlice({
       })
       .addCase(fetchConversations.fulfilled, (state, action) => {
         state.loading = false;
+        state.isFetched = true;
         state.conversations = action.payload;
       })
       .addCase(fetchConversations.rejected, (state, action) => {
         state.loading = false;
+        state.isFetched = true;
         state.error = action.payload;
       })
       // Mark Read
