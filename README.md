@@ -50,6 +50,20 @@
 - **Networking:** Axios (Interceptors for JWT), Socket.io-client
 - **Utilities:** Emoji-mart, Sonner (Toast), React Hook Form
 
+## 📂 Project Structure
+
+```bash
+src/
+├── api/            # API services (Axios config, Endpoints)
+├── assets/         # Static assets (Images, Sounds)
+├── components/     # Shared UI components (Shadcn, Custom)
+├── context/        # React Context (Socket.IO)
+├── features/       # Page-specific components (Feed, Profile, Chat...)
+├── store/          # Redux Slices (User, Posts, Chat...)
+├── utils/          # Helper functions (Date formatting, etc.)
+└── App.jsx         # Main App component & Routes
+```
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -98,19 +112,5 @@ To keep the project organized, it is recommended to create a parent folder for b
     npm run dev
     ```
     The application will start at `http://localhost:3000`.
-
-## 📂 Project Structure
-
-```bash
-src/
-├── api/            # API services (Axios config, Endpoints)
-├── assets/         # Static assets (Images, Sounds)
-├── components/     # Shared UI components (Shadcn, Custom)
-├── context/        # React Context (Socket.IO)
-├── features/       # Page-specific components (Feed, Profile, Chat...)
-├── store/          # Redux Slices (User, Posts, Chat...)
-├── utils/          # Helper functions (Date formatting, etc.)
-└── App.jsx         # Main App component & Routes
-```
 
 ---
