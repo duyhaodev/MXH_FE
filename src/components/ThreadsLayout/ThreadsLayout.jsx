@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { Sidebar } from "../Sidebar/Sidebar";
+import { MobileNav } from "../MobileNav/MobileNav";
 import { MessagePopup } from "../MessagePopup/MessagePopup";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,9 +20,10 @@ export function ThreadsLayout() {
   }, [dispatch]);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background flex-col md:flex-row">
       <Sidebar currentPage={currentPage} />
-      <main className="flex-1 border-r border-border overflow-y-auto">
+      <MobileNav />
+      <main className="flex-1 border-r border-border overflow-y-auto pt-14 pb-16 md:pt-0 md:pb-0">
         <Outlet />
       </main>
       <div className="w-80 p-6 hidden lg:block">

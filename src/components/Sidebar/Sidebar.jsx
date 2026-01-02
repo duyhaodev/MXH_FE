@@ -121,7 +121,7 @@ export function Sidebar({ currentPage }) {
   }
 
   return (
-    <div className="w-64 h-screen border-r border-border bg-background flex flex-col sticky top-0">
+    <div className="hidden md:flex w-64 h-screen border-r border-border bg-background flex flex-col sticky top-0">
       {/* Logo */}
       <div className="p-6">
         <h1 className="text-2xl font-bold">Threads</h1>
