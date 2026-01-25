@@ -169,20 +169,29 @@ function ActivityItem({ activity, onProfileClick, onPostClick, onFollowBack }) {
     }
   
     const isFollowed = activity.followed === true;
-    const dateText = formatTimeAgo(activity.timestamp);
-    const icon = iconMap[activity.type];
-    const bgClass = bgMap[activity.type] || "bg-gray-500";
+    const dateText = formatTimeAgo(activity.createdAt);
+    const icon = iconMap[activity.groupType];
+    const bgClass = bgMap[activity.groupType] || "bg-gray-500";
   
-    const hasPostLink = activity.postId && ["like_post", "like_comment", "comment_post", "repost"].includes(activity.type);
+    const hasPostLink = activity.postId && ["like_post", "like_comment", "comment_post", "repost"].includes(activity.groupType);
   
+    const users = activity.users || [];
+    const firstUser = users[0];
+    const secondUser = users[1];
+    const othersCount = activity.count - 1;
+    
     return (
       <div className={`border-b border-border p-4 transition-colors ${!activity.read ? "bg-muted/30" : ""}`}>
         <div className="flex items-start gap-3">
             <div className="relative">
-                <button onClick={() => onProfileClick?.(activity.user?.username)}>
+                <button onClick={() => onProfileClick?.(firstUser?.username)}>
                     <Avatar className="w-10 h-10 border border-background">
-                        <AvatarImage src={activity.user?.avatar} />
-                        <AvatarFallback>U</AvatarFallback>
+                        <AvatarImage src={firstUser?.avatar} />
+                        <AvatarFallback>
+                          {(firstUser?.username || firstUser?.displayName || "U")
+                            .charAt(0)
+                            .toUpperCase()}
+                        </AvatarFallback>
                     </Avatar>
                 </button>
                 {icon && (
@@ -193,14 +202,40 @@ function ActivityItem({ activity, onProfileClick, onPostClick, onFollowBack }) {
             </div>
 
             <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1 text-sm mb-1">
-                     <span 
-                        className="font-semibold hover:underline cursor-pointer"
-                        onClick={() => onProfileClick?.(activity.user?.username)}
-                     >
-                        {activity.user?.displayName || activity.user?.username}
-                     </span>
-                     <span className="text-muted-foreground">{dateText}</span>
+                <div className="flex items-center text-sm mb-1">
+                  <div className="flex items-center gap-1 min-w-0">
+                    <span
+                      className="font-semibold hover:underline cursor-pointer truncate"
+                      onClick={() => onProfileClick?.(firstUser?.username)}
+                    >
+                      {firstUser?.displayName || firstUser?.username}
+                    </span>
+
+                    {users.length === 2 && (
+                      <>
+                        <span className="text-muted-foreground"> and </span>
+                        <span
+                          className="font-semibold hover:underline cursor-pointer truncate"
+                          onClick={() => onProfileClick?.(secondUser?.username)}
+                        >
+                          {secondUser?.displayName || secondUser?.username}
+                        </span>
+                      </>
+                    )}
+
+                    {/* More than 2 users → show others */}
+                    {users.length > 2 && (
+                      <span
+                        className="text-muted-foreground whitespace-nowrap cursor-pointer hover:underline"
+                      >
+                        {" "}and {othersCount} others
+                      </span>
+                    )}
+                  </div>
+
+                  <span className="text-muted-foreground ml-auto whitespace-nowrap">
+                    {dateText}
+                  </span>
                 </div>
                 
                 <div className="text-muted-foreground text-sm">
@@ -209,9 +244,7 @@ function ActivityItem({ activity, onProfileClick, onPostClick, onFollowBack }) {
                             onClick={() => onPostClick?.(activity.postId)}
                             className="cursor-pointer hover:text-foreground transition-colors"
                          >
-                            {activity.type === 'repost' ? 'Reposted your thread' : 
-                             activity.type === 'like_post' ? 'Liked your thread' :
-                             activity.message}
+                            {activity.message}
                          </div>
                     ) : (
                         <span>{activity.message}</span>
@@ -219,7 +252,7 @@ function ActivityItem({ activity, onProfileClick, onPostClick, onFollowBack }) {
                 </div>
             </div>
 
-            {activity.type === "follow" && (
+            {activity.groupType === "follow" && users.length === 1 && (
                 <div className="flex-shrink-0 ml-2">
                     {isFollowed ? (
                         <Button variant="outline" size="sm" className="text-muted-foreground h-8 px-4" disabled>
