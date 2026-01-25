@@ -33,6 +33,7 @@ const notificationsSlice = createSlice({
     unreadCount: 0,
     loading: false,
     error: null,
+    lastReceivedAt: null,
   },
   reducers: {
     receiveNotification: (state, action) => {
@@ -41,6 +42,7 @@ const notificationsSlice = createSlice({
       state.items.unshift(newNotification);
       // Tăng số lượng chưa đọc
       state.unreadCount += 1;
+      state.lastReceivedAt = Date.now();
     },
     resetUnreadCount: (state) => {
       state.unreadCount = 0;
@@ -79,5 +81,6 @@ const notificationsSlice = createSlice({
 export const { receiveNotification, resetUnreadCount, updateNotificationItem } = notificationsSlice.actions;
 export const selectUnreadCount = (state) => state.notifications.unreadCount;
 export const selectNotifications = (state) => state.notifications.items;
+export const selectLastReceivedAt = (state) => state.notifications.lastReceivedAt;
 
 export default notificationsSlice.reducer;

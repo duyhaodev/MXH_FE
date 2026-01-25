@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Heart,
   MessageCircle,
@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { toast } from "sonner";
 import notificationApi from "../../api/notificationApi";
 import { markAllNotificationsRead } from "../../store/notificationsSlice";
+import { selectLastReceivedAt } from "../../store/notificationsSlice";
 import { formatTimeAgo } from '../../utils/dateUtils';
 
 export function ActivityPage() {
@@ -21,6 +22,8 @@ export function ActivityPage() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
+
+  const lastReceivedAt = useSelector(selectLastReceivedAt);
 
   const onProfileClick = (username) => {
     if (username) navigate(`/profile/${username}`);
@@ -63,27 +66,46 @@ export function ActivityPage() {
     dispatch(markAllNotificationsRead());
   }, [activeTab, fetchActivities, dispatch]);
 
-  const handleFollowBack = async (notificationId) => {
+  useEffect(() => {
+    if (!lastReceivedAt) return;
+    fetchActivities(activeTab);
+  }, [lastReceivedAt, activeTab, fetchActivities]);
+
+  const handleFollowBack = async (targetUserId) => {
+    console.log("Follow back clicked for notification:", targetUserId);
+    console.log("activities (outside):", activities);
     // Optimistic update
     setActivities((prev) =>
-      prev.map((a) =>
-        a.id === notificationId 
-          ? { ...a, followed: true }
-          : a
-      )
+      prev.map((a) => {
+        if (a.users?.[0]?.id === targetUserId) {
+          return {
+            ...a,
+            users: a.users.map((u, idx) =>
+              idx === 0 ? { ...u, followed: true } : u
+            ),
+          };
+        }
+        return a;
+      })
     );
 
     try {
-      await notificationApi.followBack(notificationId);
+      await notificationApi.followBack(targetUserId);
       toast.success("Followed successfully!");
     } catch (err) {
       // Revert if failed
       setActivities((prev) =>
-        prev.map((a) =>
-          a.id === notificationId 
-            ? { ...a, followed: false }
-            : a
-        )
+        prev.map((a) => {
+          if (a.users?.[0]?.id === targetUserId) {
+            return {
+              ...a,
+              users: a.users.map((u, idx) =>
+                idx === 0 ? { ...u, followed: false } : u
+              ),
+            };
+          }
+          return a;
+        })
       );
       toast.error(err.response?.data?.error || "Follow back failed!");
     }
@@ -140,7 +162,7 @@ export function ActivityPage() {
               activity={activity}
               onProfileClick={onProfileClick}
               onPostClick={onPostClick}
-              onFollowBack={handleFollowBack}
+              onFollowBack={() => handleFollowBack(activity.users?.[0]?.id)}
             />
           ))
         ) : (
@@ -167,8 +189,6 @@ function ActivityItem({ activity, onProfileClick, onPostClick, onFollowBack }) {
         repost: "bg-green-500",
         follow: "bg-purple-500",
     }
-  
-    const isFollowed = activity.followed === true;
     const dateText = formatTimeAgo(activity.createdAt);
     const icon = iconMap[activity.groupType];
     const bgClass = bgMap[activity.groupType] || "bg-gray-500";
@@ -179,7 +199,9 @@ function ActivityItem({ activity, onProfileClick, onPostClick, onFollowBack }) {
     const firstUser = users[0];
     const secondUser = users[1];
     const othersCount = activity.count - 1;
-    
+    console.log("Activity:", activity);
+    const isFollowed = firstUser.followed === true;
+    console.log("isFollowed:", isFollowed);
     return (
       <div className={`border-b border-border p-4 transition-colors ${!activity.read ? "bg-muted/30" : ""}`}>
         <div className="flex items-start gap-3">
@@ -263,7 +285,7 @@ function ActivityItem({ activity, onProfileClick, onPostClick, onFollowBack }) {
                             variant="outline" 
                             size="sm" 
                             className="h-8 px-4"
-                            onClick={() => onFollowBack(activity.id)}
+                            onClick={() => onFollowBack(firstUser.id)}
                         >
                             Follow
                         </Button>

@@ -14,8 +14,8 @@ const notificationApi = {
   },
 
   // Follow back từ thông báo
-  followBack: (notificationId) => {
-    return axios.post(`/api/notifications/follow-back/${notificationId}`);
+  followBack: (targetUserId) => {
+    return axios.post(`/api/notifications/follow-back/${targetUserId}`);
   },
 
   // Đánh dấu tất cả thông báo là đã đọc
